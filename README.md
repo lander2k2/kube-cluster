@@ -18,6 +18,8 @@ The Kubernetes community is still refining the management of cluster lifecycles.
 * Use the kube-cluster.sh script to deploy infrastructure with terraform and coordinate the bootstrapping.
 * Use terraform to tear down the cluster when finished.
 
+Note: the current setup here uses a 3-node etcd cluster co-located on the master nodes with the k8s control plane.
+
 There are three distinct roles:
 * the `master0` node is the first master node deployed
 * the two `master` nodes are added for HA
@@ -88,6 +90,9 @@ Change the terraform configs to add/remove/change the AWS infrastructure that yo
 
 ### kube-cluster script
 This script coordinates the bootstrapping process by moving files between nodes.  Alter this script if you have to coordinate other operations between nodes.
+
+### Dedicated etcd
+If you need to run a dedicated etcd cluster, you will need to create new image builds and terraform configs for the etcd nodes.
 
 ## TODO
 * pull down kubeconfig to use locally
