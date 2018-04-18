@@ -70,6 +70,11 @@ There are three distinct roles:
     ip-172-31-7-202    Ready     master    20m       v1.10.1
 ```
 
+8. Tear down the cluster when you're finished with it.
+```
+    $ terraform destroy infra
+```
+
 ## Extend
 
 ### Machine Images
