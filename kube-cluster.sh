@@ -108,7 +108,7 @@ trusted_scp /tmp/kube-cluster/k8s_tls.tar.gz ubuntu@$MASTER2:/tmp/
 echo "k8s TLS assets distributed"
 
 # retreive kubeadm join command
-trusted_scp ubuntu@$MASTER0:~/.join /tmp/kube-cluster/join
+trusted_scp ubuntu@$MASTER0:/tmp/join /tmp/kube-cluster/join
 echo "join command retreived"
 
 # distribute join command to worker
