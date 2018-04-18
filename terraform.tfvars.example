@@ -1,0 +1,12 @@
+// Add the key pair name from AWS here
+key_name = ""
+
+// Add the AMI IDs you build with packer here
+master0_ami = ""
+master_ami = ""
+worekr_ami = ""
+
+// The EC2 instance types
+master_type = "t2.medium"
+worker_type = "t2.medium"
+

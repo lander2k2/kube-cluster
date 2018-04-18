@@ -1,0 +1,11 @@
+[Unit]
+Description=Bootstrap addon master nodes in a kubernetes cluster
+
+[Service]
+Type=forking
+ExecStart=/usr/local/bin/bootstrap_master.sh
+TimeoutSec=infinity
+
+[Install]
+WantedBy=multi-user.target
+
