@@ -158,7 +158,7 @@ networking:
 apiServerCertSANs:
 - ${API_LB_EP}
 apiServerExtraArgs:
-  apiserver-count: "3"
+  endpoint-reconciler-type: "lease"
 EOF
 
 while [ $K8S_TLS -eq 0 ]; do

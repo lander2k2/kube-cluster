@@ -36,9 +36,10 @@ terraform apply -auto-approve infra
 
 # collect terraform output
 MASTER0=$(terraform output master0_ep)
+MASTER0_IP=$(terraform output master0_ip)
 MASTER1=$(echo "$(terraform output master_ep)" | sed -n '1 p' | tr -d ,)
 MASTER2=$(echo "$(terraform output master_ep)" | sed -n '2 p')
-API_LB_EP=$(terraform output api_internal_lb_ep)
+API_LB_EP=$(terraform output api_lb_ep)
 WORKER=$(terraform output worker_ep)
 
 # wait for infrastructure to spin up
@@ -116,6 +117,10 @@ trusted_scp /tmp/kube-cluster/join ubuntu@$WORKER:/tmp/join
 echo "join command sent to worker"
 
 rm -rf /tmp/kube-cluster
+
+# grab the kubeconfig to use locally
+trusted_scp ubuntu@$MASTER0:~/.kube/config ./kubeconfig
+sed -i -e "s/$MASTER0_IP/$API_LB_EP/g" ./kubeconfig
 
 exit 0
 

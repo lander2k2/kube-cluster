@@ -8,6 +8,7 @@ The Kubernetes community is still refining the management of cluster lifecycles.
 
 ## Prerequisites
 
+* install [kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl/)
 * install [packer](https://www.packer.io/intro/getting-started/install.html)
 * install [terraform](https://www.terraform.io/intro/getting-started/install.html)
 * have an AWS account with a key pair you can use
@@ -61,9 +62,9 @@ There are three distinct roles:
     $ ./kube-cluster.sh /path/to/private/key
 ```
 
-7. Check that your cluster is ready.  You should get ouput similar to below.
+7. Check that your cluster is ready.  A kubeconfig file will have been pulled down so you can use `kubectl` to check the cluster.  You should get ouput similar to below.
 ```
-    $ ssh -i /path/to/private/key ubuntu@$(terraform output master0_ep)
+    $ export KUBECONFIG=$(pwd)/kubeconfig
     $ kubectl get nodes
     NAME               STATUS    ROLES     AGE       VERSION
     ip-172-31-13-245   Ready     <none>    21m       v1.10.1
@@ -95,7 +96,6 @@ This script coordinates the bootstrapping process by moving files between nodes.
 If you need to run a dedicated etcd cluster, you will need to create new image builds and terraform configs for the etcd nodes.
 
 ## TODO
-* pull down kubeconfig to use locally
 * expand to support multiple workers
 * clean up tmp files on servers after install
 

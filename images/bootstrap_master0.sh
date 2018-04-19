@@ -200,7 +200,7 @@ networking:
 apiServerCertSANs:
 - ${API_LB_EP}
 apiServerExtraArgs:
-  apiserver-count: "3"
+  endpoint-reconciler-type: "lease"
 EOF
 
 sudo kubeadm init --config=/tmp/kubeadm-config.yaml

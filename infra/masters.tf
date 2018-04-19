@@ -109,6 +109,10 @@ output "master0_ep" {
   value = "${aws_instance.master0_node.public_dns}"
 }
 
+output "master0_ip" {
+  value = "${aws_instance.master0_node.private_ip}"
+}
+
 output "master_ep" {
   value = "${aws_instance.master_node.*.public_dns}"
 }
