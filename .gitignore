@@ -1,4 +1,3 @@
-.creds
 *.terraform
 *.tfstate
 *.tfstate.backup

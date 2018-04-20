@@ -36,9 +36,9 @@ There are three distinct roles:
 
 2. Export your AWS keys and preferred region.
 ```
-    $ export TF_VAR_access_key="[your access key]"
-    $ export TF_VAR_secret_key="[your secret key]"
-    $ export TF_VAR_region="[your region]"
+	$ export AWS_ACCESS_KEY_ID="accesskey"
+	$ export AWS_SECRET_ACCESS_KEY="secretkey"
+	$ export AWS_DEFAULT_REGION="us-east-2"
 ```
 
 3. Create a tfvars file for terraform.
