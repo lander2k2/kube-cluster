@@ -24,10 +24,20 @@ if [ ! -f $KEY_PATH ]; then
     exit 1
 fi
 
-trusted_scp() {
+trusted_fetch() {
     SOURCE=$1
     DEST=$2
     scp -i $KEY_PATH -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null $SOURCE $DEST
+}
+
+trusted_send() {
+    LOCAL_FILE=$1
+    REMOTE_HOST=$2
+    REMOTE_PATH=$3
+    scp -i $KEY_PATH -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
+        $LOCAL_FILE ubuntu@$REMOTE_HOST:/tmp/tempfile
+    ssh -i $KEY_PATH -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
+        ubuntu@$REMOTE_HOST "mv /tmp/tempfile $REMOTE_PATH"
 }
 
 # provision that action
@@ -50,76 +60,76 @@ mkdir /tmp/kube-cluster
 
 # distribute K8s API endpoint
 echo "$API_LB_EP" > /tmp/kube-cluster/api_lb_ep
-trusted_scp /tmp/kube-cluster/api_lb_ep ubuntu@$MASTER0:/tmp/
-trusted_scp /tmp/kube-cluster/api_lb_ep ubuntu@$MASTER1:/tmp/
-trusted_scp /tmp/kube-cluster/api_lb_ep ubuntu@$MASTER2:/tmp/
+trusted_send /tmp/kube-cluster/api_lb_ep $MASTER0 /tmp/api_lb_ep
+trusted_send /tmp/kube-cluster/api_lb_ep $MASTER1 /tmp/api_lb_ep
+trusted_send /tmp/kube-cluster/api_lb_ep $MASTER2 /tmp/api_lb_ep
 echo "k8s api endpoint distributed to master nodes"
 
 # retrieve etcd TLS
-trusted_scp ubuntu@$MASTER0:/tmp/etcd_tls.tar.gz /tmp/kube-cluster/
+trusted_fetch ubuntu@$MASTER0:/tmp/etcd_tls.tar.gz /tmp/kube-cluster/
 echo "etcd TLS assets retrieved"
 
 # distribute etcd TLS
-trusted_scp /tmp/kube-cluster/etcd_tls.tar.gz ubuntu@$MASTER1:/tmp/
-trusted_scp /tmp/kube-cluster/etcd_tls.tar.gz ubuntu@$MASTER2:/tmp/
+trusted_send /tmp/kube-cluster/etcd_tls.tar.gz $MASTER1 /tmp/etcd_tls.tar.gz
+trusted_send /tmp/kube-cluster/etcd_tls.tar.gz $MASTER2 /tmp/etcd_tls.tar.gz
 echo "etcd TLS assets distributed"
 
 # collect etcd members
-trusted_scp ubuntu@$MASTER0:/tmp/etcd_member /tmp/kube-cluster/etcd0
-trusted_scp ubuntu@$MASTER1:/tmp/etcd_member /tmp/kube-cluster/etcd1
-trusted_scp ubuntu@$MASTER2:/tmp/etcd_member /tmp/kube-cluster/etcd2
+trusted_fetch ubuntu@$MASTER0:/tmp/etcd_member /tmp/kube-cluster/etcd0
+trusted_fetch ubuntu@$MASTER1:/tmp/etcd_member /tmp/kube-cluster/etcd1
+trusted_fetch ubuntu@$MASTER2:/tmp/etcd_member /tmp/kube-cluster/etcd2
 echo "$(cat /tmp/kube-cluster/etcd0),$(cat /tmp/kube-cluster/etcd1),$(cat /tmp/kube-cluster/etcd2)" > \
     /tmp/kube-cluster/init_cluster
 echo "etcd members collected"
 
 # distribute etcd initial cluster
-trusted_scp /tmp/kube-cluster/init_cluster ubuntu@$MASTER0:/tmp/init_cluster
-trusted_scp /tmp/kube-cluster/init_cluster ubuntu@$MASTER1:/tmp/init_cluster
-trusted_scp /tmp/kube-cluster/init_cluster ubuntu@$MASTER2:/tmp/init_cluster
+trusted_send /tmp/kube-cluster/init_cluster $MASTER0 /tmp/init_cluster
+trusted_send /tmp/kube-cluster/init_cluster $MASTER1 /tmp/init_cluster
+trusted_send /tmp/kube-cluster/init_cluster $MASTER2 /tmp/init_cluster
 echo "initial etcd cluster distributed"
 
 # collect private IPs for api server
-trusted_scp ubuntu@$MASTER0:/tmp/private_ip /tmp/kube-cluster/etcd0_ip
-trusted_scp ubuntu@$MASTER1:/tmp/private_ip /tmp/kube-cluster/etcd1_ip
-trusted_scp ubuntu@$MASTER2:/tmp/private_ip /tmp/kube-cluster/etcd2_ip
+trusted_fetch ubuntu@$MASTER0:/tmp/private_ip /tmp/kube-cluster/etcd0_ip
+trusted_fetch ubuntu@$MASTER1:/tmp/private_ip /tmp/kube-cluster/etcd1_ip
+trusted_fetch ubuntu@$MASTER2:/tmp/private_ip /tmp/kube-cluster/etcd2_ip
 echo "addon master IPs collected"
 
 # distribute private IPs
-trusted_scp /tmp/kube-cluster/etcd0_ip ubuntu@$MASTER0:/tmp/etcd0_ip
-trusted_scp /tmp/kube-cluster/etcd1_ip ubuntu@$MASTER0:/tmp/etcd1_ip
-trusted_scp /tmp/kube-cluster/etcd2_ip ubuntu@$MASTER0:/tmp/etcd2_ip
-trusted_scp /tmp/kube-cluster/etcd0_ip ubuntu@$MASTER1:/tmp/etcd0_ip
-trusted_scp /tmp/kube-cluster/etcd1_ip ubuntu@$MASTER1:/tmp/etcd1_ip
-trusted_scp /tmp/kube-cluster/etcd2_ip ubuntu@$MASTER1:/tmp/etcd2_ip
-trusted_scp /tmp/kube-cluster/etcd0_ip ubuntu@$MASTER2:/tmp/etcd0_ip
-trusted_scp /tmp/kube-cluster/etcd1_ip ubuntu@$MASTER2:/tmp/etcd1_ip
-trusted_scp /tmp/kube-cluster/etcd2_ip ubuntu@$MASTER2:/tmp/etcd2_ip
+trusted_send /tmp/kube-cluster/etcd0_ip $MASTER0 /tmp/etcd0_ip
+trusted_send /tmp/kube-cluster/etcd1_ip $MASTER0 /tmp/etcd1_ip
+trusted_send /tmp/kube-cluster/etcd2_ip $MASTER0 /tmp/etcd2_ip
+trusted_send /tmp/kube-cluster/etcd0_ip $MASTER1 /tmp/etcd0_ip
+trusted_send /tmp/kube-cluster/etcd1_ip $MASTER1 /tmp/etcd1_ip
+trusted_send /tmp/kube-cluster/etcd2_ip $MASTER1 /tmp/etcd2_ip
+trusted_send /tmp/kube-cluster/etcd0_ip $MASTER2 /tmp/etcd0_ip
+trusted_send /tmp/kube-cluster/etcd1_ip $MASTER2 /tmp/etcd1_ip
+trusted_send /tmp/kube-cluster/etcd2_ip $MASTER2 /tmp/etcd2_ip
 
 # wait for master0 to initialize cluster
 echo "pausing for 8 min to allow master initialization..."
 sleep 480
 
 # retreive K8s TLS assets
-trusted_scp ubuntu@$MASTER0:/tmp/k8s_tls.tar.gz /tmp/kube-cluster/
+trusted_fetch ubuntu@$MASTER0:/tmp/k8s_tls.tar.gz /tmp/kube-cluster/
 echo "k8s TLS assets retrieved"
 
 # distribute K8s TLS assets
-trusted_scp /tmp/kube-cluster/k8s_tls.tar.gz ubuntu@$MASTER1:/tmp/
-trusted_scp /tmp/kube-cluster/k8s_tls.tar.gz ubuntu@$MASTER2:/tmp/
+trusted_send /tmp/kube-cluster/k8s_tls.tar.gz $MASTER1 /tmp/k8s_tls.tar.gz
+trusted_send /tmp/kube-cluster/k8s_tls.tar.gz $MASTER2 /tmp/k8s_tls.tar.gz
 echo "k8s TLS assets distributed"
 
 # retreive kubeadm join command
-trusted_scp ubuntu@$MASTER0:/tmp/join /tmp/kube-cluster/join
+trusted_fetch ubuntu@$MASTER0:/tmp/join /tmp/kube-cluster/join
 echo "join command retreived"
 
 # distribute join command to worker
-trusted_scp /tmp/kube-cluster/join ubuntu@$WORKER:/tmp/join
+trusted_send /tmp/kube-cluster/join $WORKER /tmp/join
 echo "join command sent to worker"
 
 rm -rf /tmp/kube-cluster
 
 # grab the kubeconfig to use locally
-trusted_scp ubuntu@$MASTER0:~/.kube/config ./kubeconfig
+trusted_fetch ubuntu@$MASTER0:~/.kube/config ./kubeconfig
 sed -i -e "s/$MASTER0_IP/$API_LB_EP/g" ./kubeconfig
 
 exit 0
