@@ -23,6 +23,16 @@
         },
         {
             "type": "file",
+            "source": "calico-rbac-kdd.yaml",
+            "destination": "/tmp/calico-rbac-kdd.yaml"
+        },
+        {
+            "type": "file",
+            "source": "calico.yaml",
+            "destination": "/tmp/calico.yaml"
+        },
+        {
+            "type": "file",
             "source": "bootstrap_master0.sh",
             "destination": "/tmp/bootstrap_master0.sh"
         },
