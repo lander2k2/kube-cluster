@@ -24,7 +24,7 @@ Note: the current setup here uses a 3-node etcd cluster co-located on the master
 There are three distinct roles:
 * the `master0` node is the first master node deployed
 * the two `master` nodes are added for HA
-* the `worker` node is for workloads
+* the `worker` node/s are for workloads
 
 ## Usage
 
@@ -96,6 +96,6 @@ This script coordinates the bootstrapping process by moving files between nodes.
 If you need to run a dedicated etcd cluster, you will need to create new image builds and terraform configs for the etcd nodes.
 
 ## TODO
-* expand to support multiple workers
+* dedicated etcd cluster
 * clean up tmp files on servers after install
 
