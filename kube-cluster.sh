@@ -50,7 +50,7 @@ MASTER0_IP=$(terraform output master0_ip)
 MASTER1=$(echo "$(terraform output master_ep)" | sed -n '1 p' | tr -d ,)
 MASTER2=$(echo "$(terraform output master_ep)" | sed -n '2 p')
 API_LB_EP=$(terraform output api_lb_ep)
-WORKER=$(terraform output worker_ep)
+WORKERS=$(terraform output worker_ep)
 
 # wait for infrastructure to spin up
 echo "pausing for 3 min to allow infrastructure to spin up..."
@@ -122,9 +122,11 @@ echo "k8s TLS assets distributed"
 trusted_fetch ubuntu@$MASTER0:/tmp/join /tmp/kube-cluster/join
 echo "join command retreived"
 
-# distribute join command to worker
-trusted_send /tmp/kube-cluster/join $WORKER /tmp/join
-echo "join command sent to worker"
+# distribute join command to worker/s
+for WORKER in $WORKERS; do
+    trusted_send /tmp/kube-cluster/join $(echo $WORKER | tr -d ,) /tmp/join
+done
+echo "join command sent to worker/s"
 
 rm -rf /tmp/kube-cluster
 

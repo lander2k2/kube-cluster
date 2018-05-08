@@ -1,3 +1,4 @@
+variable "worker_count" {}
 variable "worker_ami" {}
 variable "worker_type" {}
 
@@ -46,7 +47,7 @@ resource "aws_security_group" "worker_sg" {
 }
 
 resource "aws_instance" "worker_node" {
-  count                       = 1
+  count                       = "${var.worker_count}"
   ami                         = "${var.worker_ami}"
   instance_type               = "${var.worker_type}"
   subnet_id                   = "${aws_subnet.k8s_cluster0.id}"
@@ -60,6 +61,6 @@ resource "aws_instance" "worker_node" {
 }
 
 output "worker_ep" {
-  value = "${aws_instance.worker_node.public_dns}"
+  value = "${aws_instance.worker_node.*.public_dns}"
 }
 
