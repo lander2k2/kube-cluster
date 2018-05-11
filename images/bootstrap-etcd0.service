@@ -1,0 +1,11 @@
+[Unit]
+Description=Bootstrap the first etcd node in a kubernetes cluster
+
+[Service]
+Type=forking
+ExecStart=/usr/local/bin/bootstrap_etcd0.sh
+TimeoutSec=infinity
+
+[Install]
+WantedBy=multi-user.target
+

@@ -51,6 +51,10 @@ MASTER1=$(echo "$(terraform output master_ep)" | sed -n '1 p' | tr -d ,)
 MASTER2=$(echo "$(terraform output master_ep)" | sed -n '2 p')
 API_LB_EP=$(terraform output api_lb_ep)
 WORKERS=$(terraform output worker_ep)
+ETCD0=$(terraform output etcd0_ep)
+ETCDS=$(terraform output etcd_ep)
+ETCD0_IP=$(terraform output etcd0_ip)
+ETCD_IPS=$(terraform output etcd_ip)
 
 # wait for infrastructure to spin up
 echo "pausing for 3 min to allow infrastructure to spin up..."
@@ -66,35 +70,51 @@ trusted_send /tmp/kube-cluster/api_lb_ep $MASTER2 /tmp/api_lb_ep
 echo "k8s api endpoint distributed to master nodes"
 
 # retrieve etcd TLS
-trusted_fetch ubuntu@$MASTER0:/tmp/etcd_tls.tar.gz /tmp/kube-cluster/
+trusted_fetch ubuntu@$ETCD0:/tmp/etcd_tls.tar.gz /tmp/kube-cluster/
 echo "etcd TLS assets retrieved"
 
 # distribute etcd TLS
+for ETCD in $ETCDS; do
+    trusted_send /tmp/kube-cluster/etcd_tls.tar.gz $(echo $ETCD | tr -d ,) /tmp/etcd_tls.tar.gz
+done
+trusted_send /tmp/kube-cluster/etcd_tls.tar.gz $MASTER0 /tmp/etcd_tls.tar.gz
 trusted_send /tmp/kube-cluster/etcd_tls.tar.gz $MASTER1 /tmp/etcd_tls.tar.gz
 trusted_send /tmp/kube-cluster/etcd_tls.tar.gz $MASTER2 /tmp/etcd_tls.tar.gz
 echo "etcd TLS assets distributed"
 
-# collect etcd members
-trusted_fetch ubuntu@$MASTER0:/tmp/etcd_member /tmp/kube-cluster/etcd0
-trusted_fetch ubuntu@$MASTER1:/tmp/etcd_member /tmp/kube-cluster/etcd1
-trusted_fetch ubuntu@$MASTER2:/tmp/etcd_member /tmp/kube-cluster/etcd2
-echo "$(cat /tmp/kube-cluster/etcd0),$(cat /tmp/kube-cluster/etcd1),$(cat /tmp/kube-cluster/etcd2)" > \
-    /tmp/kube-cluster/init_cluster
+# collect etcd members for the --initial-cluster flag on etcd
+trusted_fetch ubuntu@$ETCD0:/tmp/etcd_member /tmp/kube-cluster/init_cluster
+INIT_MEMBERS=$(cat /tmp/kube-cluster/init_cluster)
+for ETCD in $ETCDS; do
+    trusted_fetch ubuntu@$(echo $ETCD | tr -d ,):/tmp/etcd_member /tmp/kube-cluster/etcd_member
+    INIT_MEMBERS="${INIT_MEMBERS},$(cat /tmp/kube-cluster/etcd_member)"
+done
+echo $INIT_MEMBERS > /tmp/kube-cluster/init_cluster
 echo "etcd members collected"
 
 # distribute etcd initial cluster
-trusted_send /tmp/kube-cluster/init_cluster $MASTER0 /tmp/init_cluster
-trusted_send /tmp/kube-cluster/init_cluster $MASTER1 /tmp/init_cluster
-trusted_send /tmp/kube-cluster/init_cluster $MASTER2 /tmp/init_cluster
+trusted_send /tmp/kube-cluster/init_cluster $ETCD0 /tmp/init_cluster
+for ETCD in $ETCDS; do
+    trusted_send /tmp/kube-cluster/init_cluster $(echo $ETCD | tr -d ,) /tmp/init_cluster
+done
 echo "initial etcd cluster distributed"
 
-# collect private IPs for api server
-trusted_fetch ubuntu@$MASTER0:/tmp/private_ip /tmp/kube-cluster/etcd0_ip
-trusted_fetch ubuntu@$MASTER1:/tmp/private_ip /tmp/kube-cluster/etcd1_ip
-trusted_fetch ubuntu@$MASTER2:/tmp/private_ip /tmp/kube-cluster/etcd2_ip
-echo "addon master IPs collected"
+## collect private IPs for api server
+#trusted_fetch ubuntu@$MASTER0:/tmp/private_ip /tmp/kube-cluster/etcd0_ip
+#trusted_fetch ubuntu@$MASTER1:/tmp/private_ip /tmp/kube-cluster/etcd1_ip
+#trusted_fetch ubuntu@$MASTER2:/tmp/private_ip /tmp/kube-cluster/etcd2_ip
+#echo "addon master IPs collected"
 
-# distribute private IPs
+# sort out etcd ip addresses from terraform output
+echo $ETCD0_IP > /tmp/kube-cluster/etcd0_ip
+COUNTER=1
+for ETCD_IP in $ETCD_IPS; do
+    FILENAME="etcd${COUNTER}_ip"
+    echo "$(echo $ETCD_IP | tr -d ,)" > /tmp/kube-cluster/$FILENAME
+    let COUNTER=COUNTER+1
+done
+
+# distribute etcd member ip addresses
 trusted_send /tmp/kube-cluster/etcd0_ip $MASTER0 /tmp/etcd0_ip
 trusted_send /tmp/kube-cluster/etcd1_ip $MASTER0 /tmp/etcd1_ip
 trusted_send /tmp/kube-cluster/etcd2_ip $MASTER0 /tmp/etcd2_ip
@@ -104,6 +124,7 @@ trusted_send /tmp/kube-cluster/etcd2_ip $MASTER1 /tmp/etcd2_ip
 trusted_send /tmp/kube-cluster/etcd0_ip $MASTER2 /tmp/etcd0_ip
 trusted_send /tmp/kube-cluster/etcd1_ip $MASTER2 /tmp/etcd1_ip
 trusted_send /tmp/kube-cluster/etcd2_ip $MASTER2 /tmp/etcd2_ip
+echo "etcd IP addresses distributed"
 
 # wait for master0 to initialize cluster
 echo "pausing for 8 min to allow master initialization..."
@@ -128,7 +149,7 @@ for WORKER in $WORKERS; do
 done
 echo "join command sent to worker/s"
 
-rm -rf /tmp/kube-cluster
+#rm -rf /tmp/kube-cluster
 
 # grab the kubeconfig to use locally
 trusted_fetch ubuntu@$MASTER0:~/.kube/config ./kubeconfig
