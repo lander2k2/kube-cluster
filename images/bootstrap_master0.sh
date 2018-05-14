@@ -83,6 +83,7 @@ apiServerCertSANs:
 - ${API_LB_EP}
 apiServerExtraArgs:
   endpoint-reconciler-type: "lease"
+kubernetesVersion: "stable-1.9"
 EOF
 
 # initialize

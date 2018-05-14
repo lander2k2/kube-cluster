@@ -85,6 +85,7 @@ apiServerCertSANs:
 - ${API_LB_EP}
 apiServerExtraArgs:
   endpoint-reconciler-type: "lease"
+kubernetesVersion: "stable-1.9"
 EOF
 
 # get the K8s TLS assets from master0
