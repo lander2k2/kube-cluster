@@ -1,12 +1,22 @@
 // Add the key pair name from AWS here
 key_name = ""
 
+// Desired availability zone in AWS
+availability_zone = "us-east-2a"
+
+// ID for target VPC and subnet
+vpc_id = ""
+subnet_id = ""
+
 // Add the AMI IDs you build with packer here
+etcd0_ami = ""
+etcd_ami = ""
 master0_ami = ""
 master_ami = ""
 worker_ami = ""
 
 // EC2 instance types
+etcd_type = "t2.medium"
 master_type = "t2.medium"
 worker_type = "t2.medium"
 

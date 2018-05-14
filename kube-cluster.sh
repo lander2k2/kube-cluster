@@ -1,9 +1,13 @@
 #!/bin/bash
 
 USAGE=$(cat << END
-Usage: ./kube-cluster.sh [-h] /path/to/private/key
-Provide the private key that will grant access to EC2 instances
-This utility will deploy a test k8s cluster with 3 masters and one worker in AWS
+Usage: ./kube-cluster.sh [-h] /path/to/private/key proxy_endpoint
+
+/path/to/private/key - the local filepath to the ssh private key of the
+named AWS key pair identified in the terraform.tfvars
+
+proxy_endpoint - the endpoint for the HTTP proxy that will provide
+access to the public internet for the cluster
 END
 )
 
@@ -11,12 +15,17 @@ if [ "$1" = "-h" ]; then
     echo "$USAGE"
     exit 0
 elif [ "$1" = "" ]; then
-    echo "Error: missing argument"
+    echo "Error: missing private key argument"
+    echo "$USAGE"
+    exit 1
+elif [ "$2" = "" ]; then
+    echo "Error: missing proxy argument"
     echo "$USAGE"
     exit 1
 fi
 
 KEY_PATH=$1
+PROXY_EP=$2
 
 if [ ! -f $KEY_PATH ]; then
     echo "Error: no file found at $KEY_PATH"
@@ -61,6 +70,16 @@ echo "pausing for 3 min to allow infrastructure to spin up..."
 sleep 180
 
 mkdir /tmp/kube-cluster
+
+# distribute proxy endpoint
+echo "$PROXY_EP" > /tmp/kube-cluster/proxy_ep
+trusted_send /tmp/kube-cluster/proxy_ep $MASTER0 /tmp/proxy_ep
+trusted_send /tmp/kube-cluster/proxy_ep $MASTER1 /tmp/proxy_ep
+trusted_send /tmp/kube-cluster/proxy_ep $MASTER3 /tmp/proxy_ep
+for WORKER in $WORKERS; do
+    trusted_send /tmp/kube-cluster/proxy_ep $(echo $WORKER | tr -d ,) /tmp/proxy_ep
+done
+echo "proxy endpoint sent to masters and worker/s"
 
 # distribute K8s API endpoint
 echo "$API_LB_EP" > /tmp/kube-cluster/api_lb_ep
@@ -149,7 +168,7 @@ for WORKER in $WORKERS; do
 done
 echo "join command sent to worker/s"
 
-#rm -rf /tmp/kube-cluster
+rm -rf /tmp/kube-cluster
 
 # grab the kubeconfig to use locally
 trusted_fetch ubuntu@$MASTER0:~/.kube/config ./kubeconfig
