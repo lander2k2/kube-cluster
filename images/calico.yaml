@@ -14,7 +14,7 @@ data:
   # To enable Typha, set this to "calico-typha" *and* set a non-zero value for Typha replicas
   # below.  We recommend using Typha if you have more than 50 nodes. Above 100 nodes it is
   # essential.
-  typha_service_name: "calico-typha"
+  typha_service_name: "none"
 
   # The CNI network configuration to install on each node.
   cni_network_config: |-
@@ -86,7 +86,7 @@ spec:
   # We recommend using Typha if you have more than 50 nodes.  Above 100 nodes it is essential
   # (when using the Kubernetes datastore).  Use one replica for every 100-200 nodes.  In
   # production, we recommend running at least 3 replicas to reduce the impact of rolling upgrade.
-  replicas: 3
+  replicas: 0
   revisionHistoryLimit: 2
   template:
     metadata:
