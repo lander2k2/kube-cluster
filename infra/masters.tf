@@ -4,7 +4,7 @@ variable "master_type" {}
 
 resource "aws_security_group" "master_sg" {
   name   = "master_sg"
-  vpc_id = "${aws_vpc.k8s_cluster.id}"
+  vpc_id = "${var.vpc_id}"
 
   ingress {
     from_port   = 6443
@@ -36,13 +36,13 @@ resource "aws_security_group" "master_sg" {
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
+    cidr_blocks = ["10.0.0.0/16"]
   }
 }
 
 resource "aws_security_group" "master_lb_sg" {
   name   = "master_lb_sg"
-  vpc_id = "${aws_vpc.k8s_cluster.id}"
+  vpc_id = "${var.vpc_id}"
 
   ingress {
     from_port   = 6443
@@ -55,7 +55,7 @@ resource "aws_security_group" "master_lb_sg" {
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
+    cidr_blocks = ["10.0.0.0/16"]
   }
 }
 
@@ -63,11 +63,10 @@ resource "aws_instance" "master0_node" {
   count                       = 1
   ami                         = "${var.master0_ami}"
   instance_type               = "${var.master_type}"
-  subnet_id                   = "${aws_subnet.k8s_cluster0.id}"
+  subnet_id                   = "${var.subnet_id}"
   vpc_security_group_ids      = ["${aws_security_group.master_sg.id}"]
   key_name                    = "${var.key_name}"
   associate_public_ip_address = "true"
-  depends_on                  = ["aws_internet_gateway.k8s_cluster"]
   tags {
     Name = "master0"
   }
@@ -77,18 +76,17 @@ resource "aws_instance" "master_node" {
   count                       = 2
   ami                         = "${var.master_ami}"
   instance_type               = "${var.master_type}"
-  subnet_id                   = "${aws_subnet.k8s_cluster0.id}"
+  subnet_id                   = "${var.subnet_id}"
   vpc_security_group_ids      = ["${aws_security_group.master_sg.id}"]
   key_name                    = "${var.key_name}"
   associate_public_ip_address = "true"
-  depends_on                  = ["aws_internet_gateway.k8s_cluster"]
   tags {
     Name = "master"
   }
 }
 
 resource "aws_elb" "api_elb_external" {
-  subnets                   = ["${aws_subnet.k8s_cluster0.id}"]
+  subnets                   = ["${var.subnet_id}"]
   internal                  = "false"
   instances                 = ["${aws_instance.master0_node.id}", "${aws_instance.master_node.*.id}"]
   security_groups           = ["${aws_security_group.master_lb_sg.id}"]

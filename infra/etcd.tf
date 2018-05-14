@@ -4,7 +4,7 @@ variable "etcd_type" {}
 
 resource "aws_security_group" "etcd_sg" {
   name   = "etcd_sg"
-  vpc_id = "${aws_vpc.k8s_cluster.id}"
+  vpc_id = "${var.vpc_id}"
 
   ingress {
     from_port   = 2379
@@ -23,7 +23,7 @@ resource "aws_security_group" "etcd_sg" {
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
+    cidr_blocks = ["10.0.0.0/16"]
   }
 }
 
@@ -31,11 +31,10 @@ resource "aws_instance" "etcd0_node" {
   count                       = 1
   ami                         = "${var.etcd0_ami}"
   instance_type               = "${var.etcd_type}"
-  subnet_id                   = "${aws_subnet.k8s_cluster0.id}"
+  subnet_id                   = "${var.subnet_id}"
   vpc_security_group_ids      = ["${aws_security_group.etcd_sg.id}"]
   key_name                    = "${var.key_name}"
   associate_public_ip_address = "true"
-  depends_on                  = ["aws_internet_gateway.k8s_cluster"]
   tags {
     Name = "etcd0"
   }
@@ -45,11 +44,10 @@ resource "aws_instance" "etcd_node" {
   count                       = 2
   ami                         = "${var.etcd_ami}"
   instance_type               = "${var.etcd_type}"
-  subnet_id                   = "${aws_subnet.k8s_cluster0.id}"
+  subnet_id                   = "${var.subnet_id}"
   vpc_security_group_ids      = ["${aws_security_group.etcd_sg.id}"]
   key_name                    = "${var.key_name}"
   associate_public_ip_address = "true"
-  depends_on                  = ["aws_internet_gateway.k8s_cluster"]
   tags {
     Name = "etcd"
   }

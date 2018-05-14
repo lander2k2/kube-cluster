@@ -4,7 +4,7 @@ variable "worker_type" {}
 
 resource "aws_security_group" "worker_sg" {
   name   = "worker_sg"
-  vpc_id = "${aws_vpc.k8s_cluster.id}"
+  vpc_id = "${var.vpc_id}"
 
   ingress {
     from_port   = 10250
@@ -42,7 +42,7 @@ resource "aws_security_group" "worker_sg" {
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
+    cidr_blocks = ["10.0.0.0/16"]
   }
 }
 
@@ -50,11 +50,10 @@ resource "aws_instance" "worker_node" {
   count                       = "${var.worker_count}"
   ami                         = "${var.worker_ami}"
   instance_type               = "${var.worker_type}"
-  subnet_id                   = "${aws_subnet.k8s_cluster0.id}"
+  subnet_id                   = "${var.subnet_id}"
   vpc_security_group_ids      = ["${aws_security_group.worker_sg.id}"]
   key_name                    = "${var.key_name}"
   associate_public_ip_address = "true"
-  depends_on                  = ["aws_internet_gateway.k8s_cluster"]
   tags {
     Name = "worker"
   }
