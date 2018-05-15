@@ -1,13 +1,16 @@
 #!/bin/bash
 
 USAGE=$(cat << END
-Usage: ./kube-cluster.sh [-h] /path/to/private/key proxy_endpoint
+Usage: ./kube-cluster.sh [-h] /path/to/private/key proxy_endpoint image_repo
 
 /path/to/private/key - the local filepath to the ssh private key of the
 named AWS key pair identified in the terraform.tfvars
 
 proxy_endpoint - the endpoint for the HTTP proxy that will provide
 access to the public internet for the cluster
+
+image_repo - the image reposistory to pull images from when installing
+cluster, e.g. quay.io/my_repo
 END
 )
 
@@ -22,10 +25,15 @@ elif [ "$2" = "" ]; then
     echo "Error: missing proxy argument"
     echo "$USAGE"
     exit 1
+elif [ "$3" = "" ]; then
+    echo "Error: missing image repo argument"
+    echo "$USAGE"
+    exit 1
 fi
 
 KEY_PATH=$1
 PROXY_EP=$2
+IMAGE_REPO=$3
 
 if [ ! -f $KEY_PATH ]; then
     echo "Error: no file found at $KEY_PATH"
@@ -75,11 +83,18 @@ mkdir /tmp/kube-cluster
 echo "$PROXY_EP" > /tmp/kube-cluster/proxy_ep
 trusted_send /tmp/kube-cluster/proxy_ep $MASTER0 /tmp/proxy_ep
 trusted_send /tmp/kube-cluster/proxy_ep $MASTER1 /tmp/proxy_ep
-trusted_send /tmp/kube-cluster/proxy_ep $MASTER3 /tmp/proxy_ep
+trusted_send /tmp/kube-cluster/proxy_ep $MASTER2 /tmp/proxy_ep
 for WORKER in $WORKERS; do
     trusted_send /tmp/kube-cluster/proxy_ep $(echo $WORKER | tr -d ,) /tmp/proxy_ep
 done
 echo "proxy endpoint sent to masters and worker/s"
+
+# distribute image repo
+echo "$IMAGE_REPO" > /tmp/kube-cluster/image_repo
+trusted_send /tmp/kube-cluster/image_repo $MASTER0 /tmp/image_repo
+trusted_send /tmp/kube-cluster/image_repo $MASTER1 /tmp/image_repo
+trusted_send /tmp/kube-cluster/image_repo $MASTER2 /tmp/image_repo
+echo "image repo sent to masters"
 
 # distribute K8s API endpoint
 echo "$API_LB_EP" > /tmp/kube-cluster/api_lb_ep

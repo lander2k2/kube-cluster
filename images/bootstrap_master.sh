@@ -9,6 +9,7 @@ ETCD2_IP=0
 INIT_CLUSTER=0
 K8S_TLS=0
 PROXY_EP=0
+IMAGE_REPO=0
 
 # proxy vars for docker
 while [ $PROXY_EP -eq 0 ]; do
@@ -85,6 +86,16 @@ while [ $ETCD2_IP -eq 0 ]; do
     fi
 done
 
+# image repo to pull images from
+while [ $IMAGE_REPO -eq 0 ]; do
+    if [ -f /tmp/image_repo ]; then
+        IMAGE_REPO=$(cat /tmp/image_repo)
+    else
+        echo "image repo not yet available"
+        sleep 10
+    fi
+done
+
 # generate kubeadm config
 cat > /tmp/kubeadm-config.yaml <<EOF
 apiVersion: kubeadm.k8s.io/v1alpha1
@@ -106,6 +117,7 @@ apiServerCertSANs:
 apiServerExtraArgs:
   endpoint-reconciler-type: "lease"
 kubernetesVersion: "stable-1.9"
+imageRepository: $IMAGE_REPO
 EOF
 
 # get the K8s TLS assets from master0
