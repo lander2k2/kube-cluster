@@ -28,6 +28,34 @@ EOF
 sudo systemctl daemon-reload
 sudo systemctl restart docker
 
+# image repo to pull images from
+while [ $IMAGE_REPO -eq 0 ]; do
+    if [ -f /tmp/image_repo ]; then
+        IMAGE_REPO=$(cat /tmp/image_repo)
+    else
+        echo "image repo not yet available"
+        sleep 10
+    fi
+done
+
+# change pause image repo
+cat > /etc/systemd/system/kubelet.service.d/10-kubeadm.conf <<EOF
+[Service]
+Environment="KUBELET_INFRA_IMAGE=--pod-infra-container-image=${IMAGE_REPO}/pause-amd64:3.0"
+Environment="KUBELET_KUBECONFIG_ARGS=--bootstrap-kubeconfig=/etc/kubernetes/bootstrap-kubelet.conf --kubeconfig=/etc/kubernetes/kubelet.conf"
+Environment="KUBELET_SYSTEM_PODS_ARGS=--pod-manifest-path=/etc/kubernetes/manifests --allow-privileged=true"
+Environment="KUBELET_NETWORK_ARGS=--network-plugin=cni --cni-conf-dir=/etc/cni/net.d --cni-bin-dir=/opt/cni/bin"
+Environment="KUBELET_DNS_ARGS=--cluster-dns=10.96.0.10 --cluster-domain=cluster.local"
+Environment="KUBELET_AUTHZ_ARGS=--authorization-mode=Webhook --client-ca-file=/etc/kubernetes/pki/ca.crt"
+Environment="KUBELET_CADVISOR_ARGS=--cadvisor-port=0"
+Environment="KUBELET_CERTIFICATE_ARGS=--rotate-certificates=true --cert-dir=/var/lib/kubelet/pki"
+ExecStart=
+ExecStart=/usr/bin/kubelet \$KUBELET_INFRA_IMAGE \$KUBELET_KUBECONFIG_ARGS \$KUBELET_SYSTEM_PODS_ARGS \$KUBELET_NETWORK_ARGS \$KUBELET_DNS_ARGS \$KUBELET_AUTHZ_ARGS \$KUBELET_CADVISOR_ARGS \$KUBELET_CERTIFICATE_ARGS \$KUBELET_EXTRA_ARGS
+EOF
+
+sudo systemctl daemon-reload
+sudo systemctl restart kubelet
+
 # get etcd TLS assets so API server can connect
 sudo mkdir -p /etc/kubernetes/pki/etcd
 
@@ -80,16 +108,6 @@ while [ $ETCD2_IP -eq 0 ]; do
         ETCD2_IP=$(cat /tmp/etcd2_ip)
     else
         echo "etcd2 IP not yet available"
-        sleep 10
-    fi
-done
-
-# image repo to pull images from
-while [ $IMAGE_REPO -eq 0 ]; do
-    if [ -f /tmp/image_repo ]; then
-        IMAGE_REPO=$(cat /tmp/image_repo)
-    else
-        echo "image repo not yet available"
         sleep 10
     fi
 done

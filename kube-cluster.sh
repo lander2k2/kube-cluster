@@ -94,7 +94,10 @@ echo "$IMAGE_REPO" > /tmp/kube-cluster/image_repo
 trusted_send /tmp/kube-cluster/image_repo $MASTER0 /tmp/image_repo
 trusted_send /tmp/kube-cluster/image_repo $MASTER1 /tmp/image_repo
 trusted_send /tmp/kube-cluster/image_repo $MASTER2 /tmp/image_repo
-echo "image repo sent to masters"
+for WORKER in $WORKERS; do
+    trusted_send /tmp/kube-cluster/image_repo $(echo $WORKER | tr -d ,) /tmp/image_repo
+done
+echo "image repo sent to masters and worker/s"
 
 # distribute K8s API endpoint
 echo "$API_LB_EP" > /tmp/kube-cluster/api_lb_ep
