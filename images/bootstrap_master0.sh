@@ -107,7 +107,13 @@ kubernetesVersion: "stable-1.9"
 EOF
 
 # initialize
-sudo kubeadm init --config=/tmp/kubeadm-config.yaml
+HTTP_PROXY=http://$PROXY_EP:3128 \
+    http_proxy=http://$PROXY_EP:3128 \
+    HTTPS_PROXY=http://$PROXY_EP:3128 \
+    https_proxy=http://$PROXY_EP:3128 \
+    NO_PROXY=10.0.0.0/16,192.168.0.0/16 \
+    no_proxy=10.0.0.0/16,192.168.0.0/16 \
+    sudo -E bash -c 'kubeadm init --config=/tmp/kubeadm-config.yaml'
 
 # tar up the K8s TLS assets to distribute to other masters
 sudo tar cvf /tmp/k8s_tls.tar.gz /etc/kubernetes/pki

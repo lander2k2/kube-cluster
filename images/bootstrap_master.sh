@@ -124,5 +124,11 @@ while [ $K8S_TLS -eq 0 ]; do
 done
 
 # initialize
-sudo kubeadm init --config=/tmp/kubeadm-config.yaml
+HTTP_PROXY=http://$PROXY_EP:3128 \
+    http_proxy=http://$PROXY_EP:3128 \
+    HTTPS_PROXY=http://$PROXY_EP:3128 \
+    https_proxy=http://$PROXY_EP:3128 \
+    NO_PROXY=10.0.0.0/16,192.168.0.0/16 \
+    no_proxy=10.0.0.0/16,192.168.0.0/16 \
+    sudo -E bash -c 'kubeadm init --config=/tmp/kubeadm-config.yaml'
 
