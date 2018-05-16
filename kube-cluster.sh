@@ -129,12 +129,6 @@ for ETCD in $ETCDS; do
 done
 echo "initial etcd cluster distributed"
 
-## collect private IPs for api server
-#trusted_fetch ubuntu@$MASTER0:/tmp/private_ip /tmp/kube-cluster/etcd0_ip
-#trusted_fetch ubuntu@$MASTER1:/tmp/private_ip /tmp/kube-cluster/etcd1_ip
-#trusted_fetch ubuntu@$MASTER2:/tmp/private_ip /tmp/kube-cluster/etcd2_ip
-#echo "addon master IPs collected"
-
 # sort out etcd ip addresses from terraform output
 echo $ETCD0_IP > /tmp/kube-cluster/etcd0_ip
 COUNTER=1
@@ -184,6 +178,7 @@ echo "kubeconfig retrieved"
 # generate user data script for worker asg
 mkdir /tmp/kube-workers
 cat > /tmp/kube-workers/worker-bootstrap.sh <<EOF
+#cloud-boothook
 #!/bin/bash
 echo "$PROXY_EP" | tee /tmp/proxy_ep
 echo "$IMAGE_REPO" | tee /tmp/image_repo

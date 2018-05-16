@@ -53,12 +53,6 @@ resource "aws_security_group" "worker_sg" {
   }
 }
 
-#resource "aws_launch_template" "worker" {
-#  name_prefex   = "worker"
-#  image_id      = "${var.worker_ami}"
-#  instance_type = "${var.worker_type}"
-#}
-
 data "local_file" "user_data" {
   filename = "/tmp/kube-workers/worker-bootstrap.sh"
 }
@@ -91,21 +85,4 @@ resource "aws_autoscaling_group" "workers" {
     }
   ]
 }
-
-#resource "aws_instance" "worker_node" {
-#  count                       = "${var.worker_count}"
-#  ami                         = "${var.worker_ami}"
-#  instance_type               = "${var.worker_type}"
-#  subnet_id                   = "${var.primary_subnet}"
-#  vpc_security_group_ids      = ["${aws_security_group.worker_sg.id}"]
-#  key_name                    = "${var.key_name}"
-#  associate_public_ip_address = "true"
-#  tags {
-#    Name = "worker"
-#  }
-#}
-#
-#output "worker_ep" {
-#  value = "${aws_instance.worker_node.*.public_dns}"
-#}
 
