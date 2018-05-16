@@ -1,8 +1,8 @@
 # kube-cluster
 
-A utility to deploy test Kubernetes clusters to AWS using kubeadm, terraform and packer.
+A utility to deploy Kubernetes clusters to AWS using kubeadm, terraform and packer.
 
-Note: This is experimental and does not deploy production-ready clusters.  The primary purppose for this repo is to spin up test clusters but can also be used as a starting point to automate the deployment of production-ready clusters or for platforms besides AWS.
+Note: This is still in development.  Do not use for production unless you clearly understand how this installation process works and are capable of testing and verifying the results in your cluster.
 
 The Kubernetes community is still refining the management of cluster lifecycles.  This repo simply offers a convenience until those processes are refined.
 
@@ -16,15 +16,19 @@ The Kubernetes community is still refining the management of cluster lifecycles.
 ## Overview
 
 * Use packer to build Ubuntu-based images that have services installed that will bootstrap k8s using kubeadm.
-* Use the kube-cluster.sh script to deploy infrastructure with terraform and coordinate the bootstrapping.
+* Use the kube-cluster.sh script to deploy the control plane with terraform and coordinate the bootstrapping.
+* Use terraform to deploy the worker ASG.
 * Use terraform to tear down the cluster when finished.
 
-Note: the current setup here uses a 3-node etcd cluster co-located on the master nodes with the k8s control plane.
+There are five distinct roles:
 
-There are three distinct roles:
-* the `master0` node is the first master node deployed
-* the two `master` nodes are added for HA
+* the `etcd0` node is the first etcd node deployed where etcd TLS assets are generated
+* the `etcd` nodes are the additional etcd cluster members
+* the `master0` node is the first master node deployed where the K8s TLS assets are generated
+* the `master` nodes are added for HA
 * the `worker` node/s are for workloads
+
+This version supports the use of an HTTP proxy for access from the cluster to the public internet.  It also supports using an image repo other than google container registry for pulling control plane images.
 
 ## Usage
 
@@ -46,35 +50,54 @@ There are three distinct roles:
     $ cp terraform.tfvars.example terraform.tfvars
 ```
 
-4. Open `terraform.tfvars` and add your key pair name.
+4. Open `terraform.tfvars` and add or edit the infor for:
 
-5. Build your 3 machine images.  Note the AMI IDs as you build them and add to `terraform.tfvars`.
+    * key pair
+    * VPC ID
+    * subnet IDs
+    * desired instance type
+    * number or workers
+
+    We'll add the AMIs after the images are built.
+
+5. Build your 5 machine images.  Note the AMI IDs as you build them and add to `terraform.tfvars`.
 ```
     $ cd images
+    $ packer build etcd0_template.json
+    $ packer build etcd_template.json
     $ packer build master0_template.json
     $ packer build master_template.json
     $ packer build worker_template.json
 ```
 
-6. Deploy the cluster.  Go and make coffee.  When you get back you will have a k8s cluster if everything went to plan.
+6. Deploy the control plane.  This will stand up an etcd cluster and 3 master nodes.
 ```
     $ cd ../
-    $ ./kube-cluster.sh /path/to/private/key
+    $ ./kube-cluster.sh [/path/to/private/key] [proxy_endpoint] [image_repo]
 ```
 
-7. Check that your cluster is ready.  A kubeconfig file will have been pulled down so you can use `kubectl` to check the cluster.  You should get ouput similar to below.
+7. Check the control plane is ready.  A kubeconfig file will have been pulled down so you can use `kubectl` to check the cluster.  You should get ouput similar to below.
 ```
     $ export KUBECONFIG=$(pwd)/kubeconfig
     $ kubectl get nodes
     NAME               STATUS    ROLES     AGE       VERSION
-    ip-172-31-13-245   Ready     <none>    21m       v1.10.1
-    ip-172-31-6-106    Ready     master    20m       v1.10.1
-    ip-172-31-6-2      Ready     master    28m       v1.10.1
-    ip-172-31-7-202    Ready     master    20m       v1.10.1
+    ip-172-31-6-106    Ready     master    20m       v1.9.7
+    ip-172-31-6-2      Ready     master    28m       v1.9.7
+    ip-172-31-7-202    Ready     master    20m       v1.9.7
 ```
 
-8. Tear down the cluster when you're finished with it.
+8. Deploy the worker auto scaling group.
 ```
+    $ cd workers
+    $ terraform init
+    $ terraform plan  # to check what will be done
+    $ terraform apply
+```
+
+9. Tear down the cluster when you're finished with it.
+```
+    $ terraform destroy  # from workers directory
+    $ cd ../
     $ terraform destroy infra
 ```
 
@@ -82,6 +105,7 @@ There are three distinct roles:
 
 ### Machine Images
 Change the machine images to suit your purposes.  Modify the files listed as needed, rebuild with packer and then update the AMI in your tfvars:
+
 * ` [role]_template.json` - change the underlying OS or the files that are added to the image.
 * `install_k8s.sh` - modify the packages that are installed on your nodes.
 * `bootstrap_[role].sh - alter the bootstrapping operations to get k8s up and running.
@@ -92,10 +116,6 @@ Change the terraform configs to add/remove/change the AWS infrastructure that yo
 ### kube-cluster script
 This script coordinates the bootstrapping process by moving files between nodes.  Alter this script if you have to coordinate other operations between nodes.
 
-### Dedicated etcd
-If you need to run a dedicated etcd cluster, you will need to create new image builds and terraform configs for the etcd nodes.
-
 ## TODO
-* dedicated etcd cluster
 * clean up tmp files on servers after install
 

@@ -1,12 +1,15 @@
 // Add the key pair name from AWS here
 key_name = ""
 
-// Desired availability zone in AWS
-availability_zone = "us-east-2a"
-
-// ID for target VPC and subnet
+// ID for target VPC
 vpc_id = ""
-subnet_id = ""
+
+// ID for target subnets
+// All control plane - masters and etcd - deployed to primary
+// Workers deployed across both primary and secondary
+// For cross-az worker availabilty, specify subnets in different AZs
+primary_subnet = ""
+secondary_subnet = ""
 
 // Add the AMI IDs you build with packer here
 etcd0_ami = ""
@@ -20,6 +23,7 @@ etcd_type = "t2.medium"
 master_type = "t2.medium"
 worker_type = "t2.medium"
 
-// Number of workers to deploy
-worker_count = 2
+// Number of workers to deploy initially
+// These can be subsequently scaled with an ASG
+worker_count = 1
 

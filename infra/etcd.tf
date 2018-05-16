@@ -31,7 +31,7 @@ resource "aws_instance" "etcd0_node" {
   count                       = 1
   ami                         = "${var.etcd0_ami}"
   instance_type               = "${var.etcd_type}"
-  subnet_id                   = "${var.subnet_id}"
+  subnet_id                   = "${var.primary_subnet}"
   vpc_security_group_ids      = ["${aws_security_group.etcd_sg.id}"]
   key_name                    = "${var.key_name}"
   associate_public_ip_address = "true"
@@ -44,7 +44,7 @@ resource "aws_instance" "etcd_node" {
   count                       = 2
   ami                         = "${var.etcd_ami}"
   instance_type               = "${var.etcd_type}"
-  subnet_id                   = "${var.subnet_id}"
+  subnet_id                   = "${var.primary_subnet}"
   vpc_security_group_ids      = ["${aws_security_group.etcd_sg.id}"]
   key_name                    = "${var.key_name}"
   associate_public_ip_address = "true"

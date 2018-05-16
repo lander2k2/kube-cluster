@@ -57,7 +57,7 @@ trusted_send() {
         ubuntu@$REMOTE_HOST "mv /tmp/tempfile $REMOTE_PATH"
 }
 
-# provision that action
+# provision the control plane
 terraform init infra
 terraform apply -auto-approve infra
 
@@ -67,7 +67,6 @@ MASTER0_IP=$(terraform output master0_ip)
 MASTER1=$(echo "$(terraform output master_ep)" | sed -n '1 p' | tr -d ,)
 MASTER2=$(echo "$(terraform output master_ep)" | sed -n '2 p')
 API_LB_EP=$(terraform output api_lb_ep)
-WORKERS=$(terraform output worker_ep)
 ETCD0=$(terraform output etcd0_ep)
 ETCDS=$(terraform output etcd_ep)
 ETCD0_IP=$(terraform output etcd0_ip)
@@ -79,25 +78,19 @@ sleep 180
 
 mkdir /tmp/kube-cluster
 
-# distribute proxy endpoint
+# distribute proxy endpoint to masters
 echo "$PROXY_EP" > /tmp/kube-cluster/proxy_ep
 trusted_send /tmp/kube-cluster/proxy_ep $MASTER0 /tmp/proxy_ep
 trusted_send /tmp/kube-cluster/proxy_ep $MASTER1 /tmp/proxy_ep
 trusted_send /tmp/kube-cluster/proxy_ep $MASTER2 /tmp/proxy_ep
-for WORKER in $WORKERS; do
-    trusted_send /tmp/kube-cluster/proxy_ep $(echo $WORKER | tr -d ,) /tmp/proxy_ep
-done
-echo "proxy endpoint sent to masters and worker/s"
+echo "proxy endpoint sent to masters"
 
-# distribute image repo
+# distribute image repo to masters
 echo "$IMAGE_REPO" > /tmp/kube-cluster/image_repo
 trusted_send /tmp/kube-cluster/image_repo $MASTER0 /tmp/image_repo
 trusted_send /tmp/kube-cluster/image_repo $MASTER1 /tmp/image_repo
 trusted_send /tmp/kube-cluster/image_repo $MASTER2 /tmp/image_repo
-for WORKER in $WORKERS; do
-    trusted_send /tmp/kube-cluster/image_repo $(echo $WORKER | tr -d ,) /tmp/image_repo
-done
-echo "image repo sent to masters and worker/s"
+echo "image repo sent to masters"
 
 # distribute K8s API endpoint
 echo "$API_LB_EP" > /tmp/kube-cluster/api_lb_ep
@@ -178,19 +171,24 @@ echo "k8s TLS assets distributed"
 
 # retreive kubeadm join command
 trusted_fetch ubuntu@$MASTER0:/tmp/join /tmp/kube-cluster/join
+JOIN_CMD=$(cat /tmp/kube-cluster/join)
 echo "join command retreived"
-
-# distribute join command to worker/s
-for WORKER in $WORKERS; do
-    trusted_send /tmp/kube-cluster/join $(echo $WORKER | tr -d ,) /tmp/join
-done
-echo "join command sent to worker/s"
 
 rm -rf /tmp/kube-cluster
 
 # grab the kubeconfig to use locally
 trusted_fetch ubuntu@$MASTER0:~/.kube/config ./kubeconfig
 sed -i -e "s/$MASTER0_IP/$API_LB_EP/g" ./kubeconfig
+echo "kubeconfig retrieved"
+
+# generate user data script for worker asg
+mkdir /tmp/kube-workers
+cat > /tmp/kube-workers/worker-bootstrap.sh <<EOF
+#!/bin/bash
+echo "$PROXY_EP" | tee /tmp/proxy_ep
+echo "$IMAGE_REPO" | tee /tmp/image_repo
+echo "$JOIN_CMD" | tee /tmp/join
+EOF
 
 exit 0
 
