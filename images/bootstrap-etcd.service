@@ -4,7 +4,7 @@ Description=Bootstrap additional etcd nodes in a kubernetes cluster
 [Service]
 Type=forking
 ExecStart=/usr/local/bin/bootstrap_etcd.sh
-TimeoutSec=infinity
+TimeoutSec=600
 
 [Install]
 WantedBy=multi-user.target

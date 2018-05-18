@@ -1,6 +1,6 @@
 #!/bin/bash
 
-ETCD_VERSION=v3.1.12
+ETCD_VERSION=v3.1.10
 
 sudo apt-get update
 sudo apt-get -y upgrade

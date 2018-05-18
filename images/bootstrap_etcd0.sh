@@ -1,6 +1,12 @@
 #!/bin/bash
 
-PRIVATE_IP=$(ip addr show eth0 | grep -Po 'inet \K[\d.]+')
+PRIVATE_IP=""
+while [ "$PRIVATE_IP" == "" ]; do
+    echo "private IP not yet available"
+    sleep 10
+    PRIVATE_IP=$(ip addr show eth0 | grep -Po 'inet \K[\d.]+')
+done
+
 PEER_NAME=$(hostname)
 INIT_CLUSTER=0
 
@@ -95,7 +101,7 @@ sudo sed -i 's/example\.net/'"$PEER_NAME"'/' /etc/kubernetes/pki/etcd/config.jso
     /etc/kubernetes/pki/etcd/config.json | cfssljson -bare peer)
 
 sudo tar cvf /tmp/etcd_tls.tar.gz /etc/kubernetes/pki/etcd
-sudo chown ubuntu:ubuntu /tmp/etcd_tls.tar.gz
+#sudo chown ubuntu:ubuntu /tmp/etcd_tls.tar.gz
 
 sudo tee /etc/etcd.env << END
 PEER_NAME=$PEER_NAME

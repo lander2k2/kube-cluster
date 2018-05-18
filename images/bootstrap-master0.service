@@ -4,7 +4,7 @@ Description=Bootstrap the first master node in a kubernetes cluster
 [Service]
 Type=forking
 ExecStart=/usr/local/bin/bootstrap_master0.sh
-TimeoutSec=infinity
+TimeoutSec=600
 
 [Install]
 WantedBy=multi-user.target

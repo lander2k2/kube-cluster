@@ -1,25 +1,26 @@
 {
+    "variables": {
+        "source_ami_id": "ami-e1496384",
+        "aws_region": "us-east-2"
+    },
     "builders": [
         {
             "type": "amazon-ebs",
-            "ami_name": "kubernetes-worker-{{timestamp}}",
+            "ami_name": "kubernetes-etcd0-centos-{{timestamp}}",
             "instance_type": "t2.micro",
-            "source_ami_filter": {
-                "filters": {
-                    "virtualization-type": "hvm",
-                    "name": "ubuntu/images/*ubuntu-xenial-16.04-amd64-server-*",
-                    "root-device-type": "ebs"
-                },
-                "owners": ["099720109477"],
-                "most_recent": true
-            },
-            "ssh_username": "ubuntu"
+            "source_ami": "{{user `source_ami_id`}}",
+            "ssh_username": "centos"
         }
     ],
     "provisioners": [
         {
+            "type": "file",
+            "source": "selinux_config",
+            "destination": "/tmp/selinux_config"
+        },
+        {
             "type": "shell",
-            "script": "./install_k8s.sh"
+            "script": "./install_k8s_centos.sh"
         },
         {
             "type": "file",

@@ -2,7 +2,7 @@
     "builders": [
         {
             "type": "amazon-ebs",
-            "ami_name": "kubernetes-master-{{timestamp}}",
+            "ami_name": "kubernetes-worker-{{timestamp}}",
             "instance_type": "t2.micro",
             "source_ami_filter": {
                 "filters": {
@@ -19,22 +19,22 @@
     "provisioners": [
         {
             "type": "shell",
-            "script": "./install_k8s.sh"
+            "script": "./install_k8s_ubuntu.sh"
         },
         {
             "type": "file",
-            "source": "bootstrap_master.sh",
-            "destination": "/tmp/bootstrap_master.sh"
+            "source": "bootstrap_worker.sh",
+            "destination": "/tmp/bootstrap_worker.sh"
         },
         {
             "type": "file",
-            "source": "bootstrap-master.service",
-            "destination": "/tmp/bootstrap-master.service"
+            "source": "bootstrap-worker.service",
+            "destination": "/tmp/bootstrap-worker.service"
         },
         {
             "type": "shell",
             "script": "./move_files.sh",
-            "environment_vars": "ROLE=master"
+            "environment_vars": "ROLE=worker"
         }
     ]
 }

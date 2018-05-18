@@ -1,6 +1,12 @@
 #!/bin/bash
 
-PRIVATE_IP=$(ip addr show eth0 | grep -Po 'inet \K[\d.]+')
+PRIVATE_IP=""
+while [ "$PRIVATE_IP" == "" ]; do
+    echo "private IP not yet available"
+    sleep 10
+    PRIVATE_IP=$(ip addr show eth0 | grep -Po 'inet \K[\d.]+')
+done
+
 PEER_NAME=$(hostname)
 ETCD_TLS=0
 INIT_CLUSTER=0
