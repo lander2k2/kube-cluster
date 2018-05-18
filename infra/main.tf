@@ -4,7 +4,9 @@ variable "vpc_id" {}
 variable "primary_subnet" {}
 variable "secondary_subnet" {}
 
-provider "aws" {}
+provider "aws" {
+    version = "1.14.1"
+}
 
 #resource "aws_vpc" "k8s_cluster" {
 #  cidr_block           = "10.0.0.0/16"

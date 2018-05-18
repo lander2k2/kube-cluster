@@ -9,6 +9,10 @@ variable "worker_count" {}
 variable "worker_ami" {}
 variable "worker_type" {}
 
+provider "aws" {
+    version = "1.14.1"
+}
+
 resource "aws_security_group" "worker_sg" {
   name   = "worker_sg"
   vpc_id = "${var.vpc_id}"
