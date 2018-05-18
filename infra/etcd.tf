@@ -25,6 +25,11 @@ resource "aws_security_group" "etcd_sg" {
     protocol    = "-1"
     cidr_blocks = ["10.0.0.0/16"]
   }
+
+  tags {
+    Name = "heptio-etcd"
+    vendor = "heptio"
+  }
 }
 
 resource "aws_instance" "etcd0_node" {
@@ -36,7 +41,8 @@ resource "aws_instance" "etcd0_node" {
   key_name                    = "${var.key_name}"
   associate_public_ip_address = "true"
   tags {
-    Name = "etcd0"
+    Name = "heptio-etcd0"
+    vendor = "heptio"
   }
 }
 
@@ -49,7 +55,8 @@ resource "aws_instance" "etcd_node" {
   key_name                    = "${var.key_name}"
   associate_public_ip_address = "true"
   tags {
-    Name = "etcd"
+    Name = "heptio-etcd"
+    vendor = "heptio"
   }
 }
 

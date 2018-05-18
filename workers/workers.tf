@@ -51,6 +51,11 @@ resource "aws_security_group" "worker_sg" {
     protocol    = "-1"
     cidr_blocks = ["10.0.0.0/16"]
   }
+
+  tags {
+    Name = "heptio-worker"
+    vendor = "heptio"
+  }
 }
 
 data "local_file" "user_data" {
@@ -58,7 +63,7 @@ data "local_file" "user_data" {
 }
 
 resource "aws_launch_configuration" "worker" {
-  name_prefix     = "worker"
+  name_prefix     = "heptio-worker"
   image_id        = "${var.worker_ami}"
   instance_type   = "${var.worker_type}"
   key_name        = "${var.key_name}"
@@ -72,15 +77,22 @@ resource "aws_launch_configuration" "worker" {
 }
 
 resource "aws_autoscaling_group" "workers" {
+  name                 = "heptio-workers"
   vpc_zone_identifier  = ["${var.primary_subnet}", "${var.secondary_subnet}"]
   desired_capacity     = "${var.worker_count}"
   max_size             = "${var.worker_count + 1}"
   min_size             = "${var.worker_count}"
   launch_configuration = "${aws_launch_configuration.worker.name}"
+
   tags = [
     {
       key                 = "Name"
-      value               = "worker"
+      value               = "heptio-workers"
+      propagate_at_launch = true
+    },
+    {
+      key                 = "vendor"
+      value               = "heptio"
       propagate_at_launch = true
     }
   ]

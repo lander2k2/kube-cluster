@@ -38,6 +38,11 @@ resource "aws_security_group" "master_sg" {
     protocol    = "-1"
     cidr_blocks = ["10.0.0.0/16"]
   }
+
+  tags {
+    Name = "heptio-master"
+    vendor = "heptio"
+  }
 }
 
 resource "aws_security_group" "master_lb_sg" {
@@ -57,6 +62,11 @@ resource "aws_security_group" "master_lb_sg" {
     protocol    = "-1"
     cidr_blocks = ["10.0.0.0/16"]
   }
+
+  tags {
+    Name = "heptio-k8s-api-lb"
+    vendor = "heptio"
+  }
 }
 
 resource "aws_instance" "master0_node" {
@@ -68,7 +78,8 @@ resource "aws_instance" "master0_node" {
   key_name                    = "${var.key_name}"
   associate_public_ip_address = "true"
   tags {
-    Name = "master0"
+    Name = "heptio-master0"
+    vendor = "heptio"
   }
 }
 
@@ -81,7 +92,8 @@ resource "aws_instance" "master_node" {
   key_name                    = "${var.key_name}"
   associate_public_ip_address = "true"
   tags {
-    Name = "master"
+    Name = "heptio-master"
+    vendor = "heptio"
   }
 }
 
@@ -100,7 +112,8 @@ resource "aws_elb" "api_elb_external" {
   }
 
   tags {
-    Name = "kubernetes API external"
+    Name = "heptio-k8s-api-lb"
+    vendor = "heptio"
   }
 }
 
