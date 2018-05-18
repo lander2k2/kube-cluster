@@ -73,7 +73,6 @@ resource "aws_launch_configuration" "worker" {
   key_name        = "${var.key_name}"
   security_groups = ["${aws_security_group.worker_sg.id}"]
   user_data       = "${data.local_file.user_data.content}"
-  associate_public_ip_address = true
 
   lifecycle {
     create_before_destroy = true

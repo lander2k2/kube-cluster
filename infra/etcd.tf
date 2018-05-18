@@ -39,7 +39,6 @@ resource "aws_instance" "etcd0_node" {
   subnet_id                   = "${var.primary_subnet}"
   vpc_security_group_ids      = ["${aws_security_group.etcd_sg.id}"]
   key_name                    = "${var.key_name}"
-  associate_public_ip_address = "true"
   tags {
     Name = "heptio-etcd0"
     vendor = "heptio"
@@ -53,7 +52,6 @@ resource "aws_instance" "etcd_node" {
   subnet_id                   = "${var.primary_subnet}"
   vpc_security_group_ids      = ["${aws_security_group.etcd_sg.id}"]
   key_name                    = "${var.key_name}"
-  associate_public_ip_address = "true"
   tags {
     Name = "heptio-etcd"
     vendor = "heptio"
@@ -61,14 +59,14 @@ resource "aws_instance" "etcd_node" {
 }
 
 output "etcd0_ep" {
-  value = "${aws_instance.etcd0_node.public_dns}"
+  value = "${aws_instance.etcd0_node.private_dns}"
 }
 output "etcd0_ip" {
   value = "${aws_instance.etcd0_node.private_ip}"
 }
 
 output "etcd_ep" {
-  value = "${aws_instance.etcd_node.*.public_dns}"
+  value = "${aws_instance.etcd_node.*.private_dns}"
 }
 output "etcd_ip" {
   value = "${aws_instance.etcd_node.*.private_ip}"

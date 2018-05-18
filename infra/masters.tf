@@ -76,7 +76,6 @@ resource "aws_instance" "master0_node" {
   subnet_id                   = "${var.primary_subnet}"
   vpc_security_group_ids      = ["${aws_security_group.master_sg.id}"]
   key_name                    = "${var.key_name}"
-  associate_public_ip_address = "true"
   tags {
     Name = "heptio-master0"
     vendor = "heptio"
@@ -90,7 +89,6 @@ resource "aws_instance" "master_node" {
   subnet_id                   = "${var.primary_subnet}"
   vpc_security_group_ids      = ["${aws_security_group.master_sg.id}"]
   key_name                    = "${var.key_name}"
-  associate_public_ip_address = "true"
   tags {
     Name = "heptio-master"
     vendor = "heptio"
@@ -118,7 +116,7 @@ resource "aws_elb" "api_elb_external" {
 }
 
 output "master0_ep" {
-  value = "${aws_instance.master0_node.public_dns}"
+  value = "${aws_instance.master0_node.private_dns}"
 }
 
 output "master0_ip" {
@@ -126,7 +124,7 @@ output "master0_ip" {
 }
 
 output "master_ep" {
-  value = "${aws_instance.master_node.*.public_dns}"
+  value = "${aws_instance.master_node.*.private_dns}"
 }
 
 output "api_lb_ep" {
