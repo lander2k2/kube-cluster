@@ -1,5 +1,17 @@
 #!/bin/bash
 
+# shut up broken DNS warnings
+ipaddr=`ifconfig eth0 | awk 'match($0,/inet addr:([^ ]+)/,m) {print m[1]}'`
+host=`hostname`
+
+if ! grep -q $host /etc/hosts; then
+  echo "fixing broken /etc/hosts"
+  cat <<EOF | sudo dd oflag=append conv=notrunc of=/etc/hosts >/dev/null 2>&1
+# added by bootstrap_master0.sh `date`
+$ipaddr $host
+EOF
+fi
+
 PRIVATE_IP=$(ip addr show eth0 | grep -Po 'inet \K[\d.]+')
 API_LB_EP=0
 ETCD_TLS=0
