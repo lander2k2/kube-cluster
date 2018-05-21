@@ -18,11 +18,6 @@
     ],
     "provisioners": [
         {
-            "type": "file",
-            "source": "etcd-v3.1.10-linux-amd64.tar.gz",
-            "destination": "/tmp/etcd.tar.gz"
-        },
-        {
             "type": "shell",
             "script": "./install_etcd.sh"
         },
@@ -35,11 +30,6 @@
             "type": "file",
             "source": "bootstrap-etcd0.service",
             "destination": "/tmp/bootstrap-etcd0.service"
-        },
-        {
-            "type": "shell",
-            "script": "./move_files.sh",
-            "environment_vars": "ROLE=etcd0"
         }
     ]
 }
