@@ -2,6 +2,10 @@ variable "key_name" {}
 
 variable "vpc_id" {}
 
+data "aws_vpc" "existing" {
+    id = "${var.vpc_id}"
+}
+
 variable "primary_subnet" {}
 variable "secondary_subnet" {}
 
@@ -21,19 +25,19 @@ resource "aws_security_group" "worker_sg" {
     from_port   = 10250
     to_port     = 10250
     protocol    = "TCP"
-    cidr_blocks = ["10.0.0.0/16"]
+    cidr_blocks = ["${data.aws_vpc.existing.cidr_block}"]
   }
   ingress {
     from_port   = 10250
     to_port     = 10250
     protocol    = "TCP"
-    cidr_blocks = ["10.0.0.0/16"]
+    cidr_blocks = ["${data.aws_vpc.existing.cidr_block}"]
   }
   ingress {
     from_port   = 30000
     to_port     = 32767
     protocol    = "TCP"
-    cidr_blocks = ["10.0.0.0/16"]
+    cidr_blocks = ["${data.aws_vpc.existing.cidr_block}"]
   }
   ingress {
     from_port   = 22
@@ -53,7 +57,7 @@ resource "aws_security_group" "worker_sg" {
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
-    cidr_blocks = ["10.0.0.0/16"]
+    cidr_blocks = ["${data.aws_vpc.existing.cidr_block}"]
   }
 
   tags {

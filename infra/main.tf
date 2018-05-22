@@ -1,6 +1,10 @@
 variable "key_name" {}
 variable "vpc_id" {}
 
+data "aws_vpc" "existing" {
+    id = "${var.vpc_id}"
+}
+
 variable "primary_subnet" {}
 variable "secondary_subnet" {}
 

@@ -16,7 +16,7 @@ resource "aws_security_group" "master_sg" {
     from_port   = 10250
     to_port     = 10255
     protocol    = "TCP"
-    cidr_blocks = ["10.0.0.0/16"]
+    cidr_blocks = ["${data.aws_vpc.existing.cidr_block}"]
   }
   ingress {
     from_port   = 22
@@ -36,7 +36,7 @@ resource "aws_security_group" "master_sg" {
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
-    cidr_blocks = ["10.0.0.0/16"]
+    cidr_blocks = ["${data.aws_vpc.existing.cidr_block}"]
   }
 
   tags {
@@ -60,7 +60,7 @@ resource "aws_security_group" "master_lb_sg" {
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
-    cidr_blocks = ["10.0.0.0/16"]
+    cidr_blocks = ["${data.aws_vpc.existing.cidr_block}"]
   }
 
   tags {
@@ -83,12 +83,12 @@ resource "aws_instance" "master0_node" {
 }
 
 resource "aws_instance" "master_node" {
-  count                       = 2
-  ami                         = "${var.master_ami}"
-  instance_type               = "${var.master_type}"
-  subnet_id                   = "${var.primary_subnet}"
-  vpc_security_group_ids      = ["${aws_security_group.master_sg.id}"]
-  key_name                    = "${var.key_name}"
+  count                  = 2
+  ami                    = "${var.master_ami}"
+  instance_type          = "${var.master_type}"
+  subnet_id              = "${var.primary_subnet}"
+  vpc_security_group_ids = ["${aws_security_group.master_sg.id}"]
+  key_name               = "${var.key_name}"
   tags {
     Name = "heptio-master"
     vendor = "heptio"

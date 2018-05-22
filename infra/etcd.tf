@@ -10,7 +10,7 @@ resource "aws_security_group" "etcd_sg" {
     from_port   = 2379
     to_port     = 2380
     protocol    = "TCP"
-    cidr_blocks = ["10.0.0.0/16"]
+    cidr_blocks = ["${data.aws_vpc.existing.cidr_block}"]
   }
   ingress {
     from_port   = 22
@@ -23,7 +23,7 @@ resource "aws_security_group" "etcd_sg" {
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
-    cidr_blocks = ["10.0.0.0/16"]
+    cidr_blocks = ["${data.aws_vpc.existing.cidr_block}"]
   }
 
   tags {
@@ -33,12 +33,12 @@ resource "aws_security_group" "etcd_sg" {
 }
 
 resource "aws_instance" "etcd0_node" {
-  count                       = 1
-  ami                         = "${var.etcd0_ami}"
-  instance_type               = "${var.etcd_type}"
-  subnet_id                   = "${var.primary_subnet}"
-  vpc_security_group_ids      = ["${aws_security_group.etcd_sg.id}"]
-  key_name                    = "${var.key_name}"
+  count                  = 1
+  ami                    = "${var.etcd0_ami}"
+  instance_type          = "${var.etcd_type}"
+  subnet_id              = "${var.primary_subnet}"
+  vpc_security_group_ids = ["${aws_security_group.etcd_sg.id}"]
+  key_name               = "${var.key_name}"
   tags {
     Name = "heptio-etcd0"
     vendor = "heptio"
@@ -46,12 +46,12 @@ resource "aws_instance" "etcd0_node" {
 }
 
 resource "aws_instance" "etcd_node" {
-  count                       = 2
-  ami                         = "${var.etcd_ami}"
-  instance_type               = "${var.etcd_type}"
-  subnet_id                   = "${var.primary_subnet}"
-  vpc_security_group_ids      = ["${aws_security_group.etcd_sg.id}"]
-  key_name                    = "${var.key_name}"
+  count                  = 2
+  ami                    = "${var.etcd_ami}"
+  instance_type          = "${var.etcd_type}"
+  subnet_id              = "${var.primary_subnet}"
+  vpc_security_group_ids = ["${aws_security_group.etcd_sg.id}"]
+  key_name               = "${var.key_name}"
   tags {
     Name = "heptio-etcd"
     vendor = "heptio"
