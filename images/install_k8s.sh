@@ -2,10 +2,16 @@
 
 sudo apt-get update
 sudo apt-get install -y docker.io apt-transport-https
-curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
-echo "deb http://apt.kubernetes.io/ kubernetes-xenial main" | sudo tee -a /etc/apt/sources.list.d/kubernetes.list
-sudo apt-get update
-sudo apt-get install -y kubelet=1.9.7-00 kubeadm=1.9.7-00 kubectl=1.9.7-00
+
+cd /tmp; tar xvf /tmp/kubernetes-node-linux-amd64.tar.gz
+sudo mv /tmp/kubernetes/node/bin/kubelet /usr/bin/
+sudo mv /tmp/kubernetes/node/bin/kubectl /usr/local/bin/
+sudo mv /tmp/kubernetes/node/bin/kubeadm /usr/local/bin/
+rm /tmp/kubernetes-node-linux-amd64.tar.gz
+rm -rf /tmp/kubernetes
+sudo mv /tmp/kubelet.service /lib/systemd/system/
+sudo mkdir /etc/systemd/system/kubelet.service.d/
+sudo systemctl enable kubelet
 
 sudo curl -o /usr/local/bin/cfssl https://pkg.cfssl.org/R1.2/cfssl_linux-amd64
 sudo curl -o /usr/local/bin/cfssljson https://pkg.cfssl.org/R1.2/cfssljson_linux-amd64

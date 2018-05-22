@@ -144,7 +144,7 @@ apiServerCertSANs:
 - ${API_LB_EP}
 apiServerExtraArgs:
   endpoint-reconciler-type: "lease"
-kubernetesVersion: "stable-1.9"
+kubernetesVersion: "1.9.7"
 imageRepository: $IMAGE_REPO
 EOF
 

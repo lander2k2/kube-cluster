@@ -18,6 +18,16 @@
     ],
     "provisioners": [
         {
+            "type": "file",
+            "source": "kubernetes-node-linux-amd64.tar.gz",
+            "destination": "/tmp/kubernetes-node-linux-amd64.tar.gz"
+        },
+        {
+            "type": "file",
+            "source": "kubelet.service",
+            "destination": "/tmp/kubelet.service"
+        },
+        {
             "type": "shell",
             "script": "./install_k8s.sh"
         },
