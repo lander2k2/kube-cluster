@@ -95,9 +95,9 @@ resource "aws_instance" "master_node" {
   }
 }
 
-resource "aws_elb" "api_elb_external" {
+resource "aws_elb" "api_elb_internal" {
   subnets                   = ["${var.primary_subnet}"]
-  internal                  = "false"
+  internal                  = "true"
   instances                 = ["${aws_instance.master0_node.id}", "${aws_instance.master_node.*.id}"]
   security_groups           = ["${aws_security_group.master_lb_sg.id}"]
   cross_zone_load_balancing = "true"
