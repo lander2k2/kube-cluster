@@ -2,7 +2,7 @@
     "builders": [
         {
             "type": "amazon-ebs",
-            "ami_name": "kubernetes-etcd-{{timestamp}}",
+            "ami_name": "heptio-k8s-etcd-ubuntu-{{timestamp}}",
             "instance_type": "t2.micro",
             "source_ami_filter": {
                 "filters": {

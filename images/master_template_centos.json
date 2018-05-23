@@ -6,7 +6,7 @@
     "builders": [
         {
             "type": "amazon-ebs",
-            "ami_name": "kubernetes-etcd0-centos-{{timestamp}}",
+            "ami_name": "heptio-k8s-master-centos-{{timestamp}}",
             "instance_type": "t2.micro",
             "source_ami": "{{user `source_ami_id`}}",
             "ssh_username": "centos"
