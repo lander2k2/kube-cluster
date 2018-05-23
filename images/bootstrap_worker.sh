@@ -29,7 +29,7 @@ done
 sudo mkdir -p /etc/systemd/system/docker.service.d
 sudo cat > /etc/systemd/system/docker.service.d/http-proxy.conf <<EOF
 [Service]
-Environment="HTTP_PROXY=http://$PROXY_EP:3128/" "HTTPS_PROXY=http://$PROXY_EP:3128/"
+Environment="HTTP_PROXY=http://$PROXY_EP:3128/" "HTTPS_PROXY=http://$PROXY_EP:3128/" "NO_PROXY=docker-pek.cnqr-cn.com,$HOSTNAME,localhost,127.0.0.1,169.254.169.254"
 EOF
 
 sudo systemctl daemon-reload
