@@ -95,7 +95,7 @@ resource "aws_instance" "master_node" {
   }
 }
 
-resource "aws_elb" "api_elb_internal" {
+resource "aws_elb" "api_elb" {
   subnets                   = ["${var.primary_subnet}"]
   internal                  = "true"
   instances                 = ["${aws_instance.master0_node.id}", "${aws_instance.master_node.*.id}"]
@@ -128,6 +128,6 @@ output "master_ep" {
 }
 
 output "api_lb_ep" {
-  value = "${aws_elb.api_elb_external.dns_name}"
+  value = "${aws_elb.api_elb.dns_name}"
 }
 
