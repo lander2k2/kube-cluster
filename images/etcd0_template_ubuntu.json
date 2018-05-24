@@ -2,7 +2,7 @@
     "builders": [
         {
             "type": "amazon-ebs",
-            "ami_name": "heptio-k8s-master-{{timestamp}}",
+            "ami_name": "heptio-k8s-etcd0-{{timestamp}}",
             "instance_type": "t2.micro",
             "source_ami_filter": {
                 "filters": {
@@ -18,33 +18,23 @@
     ],
     "provisioners": [
         {
-            "type": "file",
-            "source": "kubernetes-node-linux-amd64.tar.gz",
-            "destination": "/tmp/kubernetes-node-linux-amd64.tar.gz"
-        },
-        {
-            "type": "file",
-            "source": "kubelet.service",
-            "destination": "/tmp/kubelet.service"
-        },
-        {
             "type": "shell",
-            "script": "./install_k8s.sh"
+            "script": "./install_etcd_ubuntu.sh"
         },
         {
             "type": "file",
-            "source": "bootstrap_master.sh",
-            "destination": "/tmp/bootstrap_master.sh"
+            "source": "bootstrap_etcd0.sh",
+            "destination": "/tmp/bootstrap_etcd0.sh"
         },
         {
             "type": "file",
-            "source": "bootstrap-master.service",
-            "destination": "/tmp/bootstrap-master.service"
+            "source": "bootstrap-etcd0.service",
+            "destination": "/tmp/bootstrap-etcd0.service"
         },
         {
             "type": "shell",
             "script": "./move_files.sh",
-            "environment_vars": "ROLE=master"
+            "environment_vars": "ROLE=etcd0"
         }
     ]
 }

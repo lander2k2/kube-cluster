@@ -29,7 +29,7 @@
         },
         {
             "type": "shell",
-            "script": "./install_k8s.sh"
+            "script": "./install_k8s_ubuntu.sh"
         },
         {
             "type": "file",
@@ -43,7 +43,7 @@
         },
         {
             "type": "file",
-            "source": "bootstrap_master0.sh",
+            "source": "bootstrap_master0_ubuntu.sh",
             "destination": "/tmp/bootstrap_master0.sh"
         },
         {

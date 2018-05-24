@@ -2,7 +2,7 @@
     "builders": [
         {
             "type": "amazon-ebs",
-            "ami_name": "heptio-k8s-etcd0-{{timestamp}}",
+            "ami_name": "heptio-k8s-etcd-{{timestamp}}",
             "instance_type": "t2.micro",
             "source_ami_filter": {
                 "filters": {
@@ -19,22 +19,22 @@
     "provisioners": [
         {
             "type": "shell",
-            "script": "./install_etcd.sh"
+            "script": "./install_etcd_ubuntu.sh"
         },
         {
             "type": "file",
-            "source": "bootstrap_etcd0.sh",
-            "destination": "/tmp/bootstrap_etcd0.sh"
+            "source": "bootstrap_etcd.sh",
+            "destination": "/tmp/bootstrap_etcd.sh"
         },
         {
             "type": "file",
-            "source": "bootstrap-etcd0.service",
-            "destination": "/tmp/bootstrap-etcd0.service"
+            "source": "bootstrap-etcd.service",
+            "destination": "/tmp/bootstrap-etcd.service"
         },
         {
             "type": "shell",
             "script": "./move_files.sh",
-            "environment_vars": "ROLE=etcd0"
+            "environment_vars": "ROLE=etcd"
         }
     ]
 }

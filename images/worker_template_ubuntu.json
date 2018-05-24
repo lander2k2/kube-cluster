@@ -29,11 +29,11 @@
         },
         {
             "type": "shell",
-            "script": "./install_k8s.sh"
+            "script": "./install_k8s_ubuntu.sh"
         },
         {
             "type": "file",
-            "source": "bootstrap_worker.sh",
+            "source": "bootstrap_worker_ubuntu.sh",
             "destination": "/tmp/bootstrap_worker.sh"
         },
         {
