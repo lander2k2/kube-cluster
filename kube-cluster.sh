@@ -1,7 +1,9 @@
 #!/bin/bash
 
 USAGE=$(cat << END
-Usage: ./kube-cluster.sh [-h] /path/to/private/key proxy_endpoint image_repo
+Usage: ./kube-cluster.sh [-h] host_os /path/to/private/key proxy_endpoint image_repo
+
+host_os - the host operating system to use for cluster nodes; must be one of [ubuntu,centos]
 
 /path/to/private/key - the local filepath to the ssh private key of the
 named AWS key pair identified in the terraform.tfvars
@@ -18,22 +20,33 @@ if [ "$1" = "-h" ]; then
     echo "$USAGE"
     exit 0
 elif [ "$1" = "" ]; then
-    echo "Error: missing private key argument"
+    echo "Error: missing host os argument"
     echo "$USAGE"
     exit 1
 elif [ "$2" = "" ]; then
-    echo "Error: missing proxy argument"
+    echo "Error: missing private key argument"
     echo "$USAGE"
     exit 1
 elif [ "$3" = "" ]; then
+    echo "Error: missing proxy argument"
+    echo "$USAGE"
+    exit 1
+elif [ "$4" = "" ]; then
     echo "Error: missing image repo argument"
     echo "$USAGE"
     exit 1
 fi
 
-KEY_PATH=$1
-PROXY_EP=$2
-IMAGE_REPO=$3
+HOST_OS=$1
+KEY_PATH=$2
+PROXY_EP=$3
+IMAGE_REPO=$4
+
+if [ $HOST_OS != "ubuntu" ] && [ $HOST_OS != "centos" ]; then
+    echo "Error: unrecognized host OS"
+    echo "$USAGE"
+    exit 1
+fi
 
 if [ ! -f $KEY_PATH ]; then
     echo "Error: no file found at $KEY_PATH"
@@ -52,9 +65,9 @@ trusted_send() {
     REMOTE_HOST=$2
     REMOTE_PATH=$3
     scp -i $KEY_PATH -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
-        $LOCAL_FILE ubuntu@$REMOTE_HOST:/tmp/tempfile
+        $LOCAL_FILE $HOST_OS@$REMOTE_HOST:/tmp/tempfile
     ssh -i $KEY_PATH -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
-        ubuntu@$REMOTE_HOST "mv /tmp/tempfile $REMOTE_PATH"
+        $HOST_OS@$REMOTE_HOST "mv /tmp/tempfile $REMOTE_PATH"
 }
 
 # provision the control plane
@@ -100,7 +113,7 @@ trusted_send /tmp/kube-cluster/api_lb_ep $MASTER2 /tmp/api_lb_ep
 echo "k8s api endpoint distributed to master nodes"
 
 # retrieve etcd TLS
-trusted_fetch ubuntu@$ETCD0:/tmp/etcd_tls.tar.gz /tmp/kube-cluster/
+trusted_fetch $HOST_OS@$ETCD0:/tmp/etcd_tls.tar.gz /tmp/kube-cluster/
 echo "etcd TLS assets retrieved"
 
 # distribute etcd TLS
@@ -113,10 +126,10 @@ trusted_send /tmp/kube-cluster/etcd_tls.tar.gz $MASTER2 /tmp/etcd_tls.tar.gz
 echo "etcd TLS assets distributed"
 
 # collect etcd members for the --initial-cluster flag on etcd
-trusted_fetch ubuntu@$ETCD0:/tmp/etcd_member /tmp/kube-cluster/init_cluster
+trusted_fetch $HOST_OS@$ETCD0:/tmp/etcd_member /tmp/kube-cluster/init_cluster
 INIT_MEMBERS=$(cat /tmp/kube-cluster/init_cluster)
 for ETCD in $ETCDS; do
-    trusted_fetch ubuntu@$(echo $ETCD | tr -d ,):/tmp/etcd_member /tmp/kube-cluster/etcd_member
+    trusted_fetch $HOST_OS@$(echo $ETCD | tr -d ,):/tmp/etcd_member /tmp/kube-cluster/etcd_member
     INIT_MEMBERS="${INIT_MEMBERS},$(cat /tmp/kube-cluster/etcd_member)"
 done
 echo $INIT_MEMBERS > /tmp/kube-cluster/init_cluster
@@ -155,7 +168,7 @@ echo "pausing for 8 min to allow master initialization..."
 sleep 480
 
 # retreive K8s TLS assets
-trusted_fetch ubuntu@$MASTER0:/tmp/k8s_tls.tar.gz /tmp/kube-cluster/
+trusted_fetch $HOST_OS@$MASTER0:/tmp/k8s_tls.tar.gz /tmp/kube-cluster/
 echo "k8s TLS assets retrieved"
 
 # distribute K8s TLS assets
@@ -164,14 +177,14 @@ trusted_send /tmp/kube-cluster/k8s_tls.tar.gz $MASTER2 /tmp/k8s_tls.tar.gz
 echo "k8s TLS assets distributed"
 
 # retreive kubeadm join command
-trusted_fetch ubuntu@$MASTER0:/tmp/join /tmp/kube-cluster/join
+trusted_fetch $HOST_OS@$MASTER0:/tmp/join /tmp/kube-cluster/join
 JOIN_CMD=$(cat /tmp/kube-cluster/join)
 echo "join command retreived"
 
 rm -rf /tmp/kube-cluster
 
 # grab the kubeconfig to use locally
-trusted_fetch ubuntu@$MASTER0:~/.kube/config ./kubeconfig
+trusted_fetch $HOST_OS@$MASTER0:~/.kube/config ./kubeconfig
 sed -i -e "s/$MASTER0_IP/$API_LB_EP/g" ./kubeconfig
 echo "kubeconfig retrieved"
 

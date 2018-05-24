@@ -1,0 +1,42 @@
+{
+    "variables": {
+        "source_ami_id": "ami-e1496384",
+        "aws_region": "us-east-2"
+    },
+    "builders": [
+        {
+            "type": "amazon-ebs",
+            "ami_name": "heptio-k8s-etcd-centos-{{timestamp}}",
+            "instance_type": "t2.micro",
+            "source_ami": "{{user `source_ami_id`}}",
+            "ssh_username": "centos"
+        }
+    ],
+    "provisioners": [
+        {
+            "type": "file",
+            "source": "selinux_config",
+            "destination": "/tmp/selinux_config"
+        },
+        {
+            "type": "shell",
+            "script": "./install_etcd_centos.sh"
+        },
+        {
+            "type": "file",
+            "source": "bootstrap_etcd.sh",
+            "destination": "/tmp/bootstrap_etcd.sh"
+        },
+        {
+            "type": "file",
+            "source": "bootstrap-etcd.service",
+            "destination": "/tmp/bootstrap-etcd.service"
+        },
+        {
+            "type": "shell",
+            "script": "./move_files.sh",
+            "environment_vars": "ROLE=etcd"
+        }
+    ]
+}
+

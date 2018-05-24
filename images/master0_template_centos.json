@@ -1,0 +1,57 @@
+{
+    "variables": {
+        "source_ami_id": "ami-e1496384",
+        "aws_region": "us-east-2"
+    },
+    "builders": [
+        {
+            "type": "amazon-ebs",
+            "ami_name": "heptio-k8s-master0-centos-{{timestamp}}",
+            "instance_type": "t2.micro",
+            "source_ami": "{{user `source_ami_id`}}",
+            "ssh_username": "centos"
+        }
+    ],
+    "provisioners": [
+        {
+            "type": "file",
+            "source": "selinux_config",
+            "destination": "/tmp/selinux_config"
+        },
+        {
+            "type": "file",
+            "source": "selinux_config",
+            "destination": "/tmp/selinux_config"
+        },
+        {
+            "type": "shell",
+            "script": "./install_k8s_centos.sh"
+        },
+        {
+            "type": "file",
+            "source": "calico-rbac-kdd.yaml",
+            "destination": "/tmp/calico-rbac-kdd.yaml"
+        },
+        {
+            "type": "file",
+            "source": "calico.yaml",
+            "destination": "/tmp/calico.yaml"
+        },
+        {
+            "type": "file",
+            "source": "bootstrap_master0_centos.sh",
+            "destination": "/tmp/bootstrap_master0.sh"
+        },
+        {
+            "type": "file",
+            "source": "bootstrap-master0.service",
+            "destination": "/tmp/bootstrap-master0.service"
+        },
+        {
+            "type": "shell",
+            "script": "./move_files.sh",
+            "environment_vars": "ROLE=master0"
+        }
+    ]
+}
+

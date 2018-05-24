@@ -4,7 +4,7 @@ Description=Join a worker node to kubernetes cluster
 [Service]
 Type=forking
 ExecStart=/usr/local/bin/bootstrap_worker.sh
-TimeoutSec=infinity
+TimeoutSec=600
 
 [Install]
 WantedBy=multi-user.target
