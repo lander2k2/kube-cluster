@@ -19,7 +19,7 @@ gpgcheck=1
 repo_gpgcheck=1
 gpgkey=https://packages.cloud.google.com/yum/doc/yum-key.gpg https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
 EOF
-sudo yum install -y kubelet-1.9.8-0 kubeadm-1.9.8-0 kubectl-1.9.8-0
+sudo yum install -y kubelet-1.9.7-0 kubeadm-1.9.7-0 kubectl-1.9.7-0
 sudo systemctl enable kubelet
 
 sudo curl -o /usr/local/bin/cfssl https://pkg.cfssl.org/R1.2/cfssl_linux-amd64
