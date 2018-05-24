@@ -24,7 +24,7 @@
         },
         {
             "type": "file",
-            "source": "bootstrap_master.sh",
+            "source": "bootstrap_master_centos.sh",
             "destination": "/tmp/bootstrap_master.sh"
         },
         {

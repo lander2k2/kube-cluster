@@ -23,7 +23,7 @@
         },
         {
             "type": "file",
-            "source": "bootstrap_worker.sh",
+            "source": "bootstrap_worker_ubuntu.sh",
             "destination": "/tmp/bootstrap_worker.sh"
         },
         {

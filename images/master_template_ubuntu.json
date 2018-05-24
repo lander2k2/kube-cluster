@@ -23,7 +23,7 @@
         },
         {
             "type": "file",
-            "source": "bootstrap_master.sh",
+            "source": "bootstrap_master_ubuntu.sh",
             "destination": "/tmp/bootstrap_master.sh"
         },
         {

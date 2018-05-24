@@ -24,7 +24,7 @@
         },
         {
             "type": "file",
-            "source": "bootstrap_worker.sh",
+            "source": "bootstrap_worker_centos.sh",
             "destination": "/tmp/bootstrap_worker.sh"
         },
         {

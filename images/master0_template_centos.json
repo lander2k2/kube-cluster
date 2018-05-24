@@ -39,7 +39,7 @@
         },
         {
             "type": "file",
-            "source": "bootstrap_master0.sh",
+            "source": "bootstrap_master0_centos.sh",
             "destination": "/tmp/bootstrap_master0.sh"
         },
         {
