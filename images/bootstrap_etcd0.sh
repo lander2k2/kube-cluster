@@ -1,5 +1,13 @@
 #!/bin/bash
 
+# wait for permanent hostname
+HOSTNAME_PRE="ip-172"
+while [ "$HOSTNAME_PRE" != "ip-10" ]; do
+    echo "permanent hostname not yet available"
+    sleep 10
+    HOSTNAME_PRE=$(hostname | cut -c1-5)
+done
+
 # shut up broken DNS warnings
 ipaddr=`ifconfig eth0 | awk 'match($0,/inet addr:([^ ]+)/,m) {print m[1]}'`
 host=`hostname`

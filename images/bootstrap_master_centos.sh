@@ -1,6 +1,32 @@
 #!/bin/bash
 
-PRIVATE_IP=$(ip addr show eth0 | grep -Po 'inet \K[\d.]+')
+# wait for permanent hostname
+HOSTNAME_PRE="ip-172"
+while [ "$HOSTNAME_PRE" != "ip-10" ]; do
+    echo "permanent hostname not yet available"
+    sleep 10
+    HOSTNAME_PRE=$(hostname | cut -c1-5)
+done
+
+# shut up broken DNS warnings
+ipaddr=`ifconfig eth0 | awk 'match($0,/inet addr:([^ ]+)/,m) {print m[1]}'`
+host=`hostname`
+
+if ! grep -q $host /etc/hosts; then
+  echo "fixing broken /etc/hosts"
+  cat <<EOF | sudo dd oflag=append conv=notrunc of=/etc/hosts >/dev/null 2>&1
+# added by bootstrap_etcd0.sh `date`
+$ipaddr $host
+EOF
+fi
+
+PRIVATE_IP=""
+while [ "$PRIVATE_IP" == "" ]; do
+    echo "private IP not yet available"
+    sleep 10
+    PRIVATE_IP=$(ip addr show eth0 | grep -Po 'inet \K[\d.]+')
+done
+
 API_LB_EP=0
 ETCD_TLS=0
 ETCD0_IP=0
@@ -24,7 +50,7 @@ done
 sudo mkdir -p /etc/systemd/system/docker.service.d
 sudo cat > /etc/systemd/system/docker.service.d/http-proxy.conf <<EOF
 [Service]
-Environment="HTTP_PROXY=http://$PROXY_EP:3128/" "HTTPS_PROXY=http://$PROXY_EP:3128/"
+Environment="HTTP_PROXY=http://$PROXY_EP:3128/" "HTTPS_PROXY=http://$PROXY_EP:3128/" "NO_PROXY=docker-pek.cnqr-cn.com,$HOSTNAME,localhost,127.0.0.1,169.254.169.254"
 EOF
 
 sudo systemctl daemon-reload
