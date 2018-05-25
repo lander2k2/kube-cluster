@@ -15,6 +15,16 @@
     "provisioners": [
         {
             "type": "file",
+            "source": "kubernetes-node-linux-amd64.tar.gz",
+            "destination": "/tmp/kubernetes-node-linux-amd64.tar.gz"
+        },
+        {
+            "type": "file",
+            "source": "kubelet.service",
+            "destination": "/tmp/kubelet.service"
+        },
+        {
+            "type": "file",
             "source": "selinux_config",
             "destination": "/tmp/selinux_config"
         },
