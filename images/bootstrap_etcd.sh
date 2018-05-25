@@ -30,6 +30,7 @@ done
 PEER_NAME=$(hostname)
 ETCD_TLS=0
 INIT_CLUSTER=0
+INSTALL_COMPLETE=0
 
 echo "${PEER_NAME}=https://${PRIVATE_IP}:2380" > /tmp/etcd_member
 echo "${PRIVATE_IP}" > /tmp/private_ip
@@ -126,9 +127,20 @@ sudo systemctl enable etcd
 sudo systemctl start etcd
 
 # clean
-sudo rm -rf /tpm/etc
-sudo rm /tmp/etcd_member \
-    /tmp/etcd_tls.tar.gz \
-    /tmp/init_cluster \
-    /tmp/private_ip
+while [ $INSTALL_COMPLETE -eq 0 ]; do
+    if [ -f /tmp/install_complete ]; then
+        sudo rm -rf /tmp/etc
+        sudo rm /tmp/etcd_member \
+            /tmp/etcd_tls.tar.gz \
+            /tmp/init_cluster \
+            /tmp/private_ip
+        INSTALL_COMPLETE=1
+    else
+        echo "cluster installation not yet complete"
+        sleep 10
+    fi
+done
+
+echo "bootstrap complete"
+exit 0
 

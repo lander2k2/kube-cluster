@@ -96,3 +96,6 @@ sudo rm -rf /tmp/image_repo \
     /tmp/join \
     /tmp/proxy_ep
 
+echo "bootstrap complete"
+exit 0
+

@@ -185,8 +185,6 @@ trusted_fetch $HOST_OS@$MASTER0:/tmp/join /tmp/kube-cluster/join
 JOIN_CMD=$(cat /tmp/kube-cluster/join)
 echo "join command retreived"
 
-rm -rf /tmp/kube-cluster
-
 # grab the kubeconfig to use locally
 trusted_fetch $HOST_OS@$MASTER0:~/.kube/config ./kubeconfig
 sed -i -e "s/$MASTER0_IP/$API_LB_EP/g" ./kubeconfig
@@ -201,6 +199,20 @@ echo "$PROXY_EP" | tee /tmp/proxy_ep
 echo "$IMAGE_REPO" | tee /tmp/image_repo
 echo "$JOIN_CMD" | tee /tmp/join
 EOF
+echo "worker user data script generated"
+
+# signal install complete
+echo "complete" > /tmp/kube-cluster/install_complete
+trusted_send /tmp/kube-cluster/install_complete $ETCD0 /tmp/install_complete
+for ETCD in $ETCDS; do
+    trusted_send /tmp/kube-cluster/install_complete $(echo $ETCD | tr -d ,) /tmp/install_complete
+done
+trusted_send /tmp/kube-cluster/install_complete $MASTER0 /tmp/install_complete
+trusted_send /tmp/kube-cluster/install_complete $MASTER1 /tmp/install_complete
+trusted_send /tmp/kube-cluster/install_complete $MASTER2 /tmp/install_complete
+
+# clean
+rm -rf /tmp/kube-cluster
 
 exit 0
 

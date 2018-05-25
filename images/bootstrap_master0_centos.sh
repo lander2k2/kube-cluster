@@ -34,6 +34,7 @@ ETCD1_IP=0
 ETCD2_IP=0
 PROXY_EP=0
 IMAGE_REPO=0
+INSTALL_COMPLETE=0
 
 # ensure iptables are used correctly
 cat <<EOF >  /etc/sysctl.d/k8s.conf
@@ -190,15 +191,26 @@ sudo kubeadm token create --description "Token created and used by kube-cluster 
 sudo chown centos:centos /tmp/join
 
 # clean
-sudo rm -rf /tmp/etc
-sudo rm /tmp/api_lb_ep \
-    /tmp/etcd0_ip \
-    /tmp/etcd1_ip \
-    /tmp/etcd2_ip \
-    /tmp/etcd_tls.tar.gz \
-    /tmp/image_repo \
-    /tmp/join \
-    /tmp/k8s_tls.tar.gz \
-    /tmp/kubeadm-config.yaml \
-    /tmp/proxy_ep
+while [ $INSTALL_COMPLETE -eq 0 ]; do
+    if [ -f /tmp/install_complete ]; then
+        sudo rm -rf /tmp/etc
+        sudo rm /tmp/api_lb_ep \
+            /tmp/etcd0_ip \
+            /tmp/etcd1_ip \
+            /tmp/etcd2_ip \
+            /tmp/etcd_tls.tar.gz \
+            /tmp/image_repo \
+            /tmp/join \
+            /tmp/k8s_tls.tar.gz \
+            /tmp/kubeadm-config.yaml \
+            /tmp/proxy_ep
+        INSTALL_COMPLETE=1
+    else
+        echo "cluster installation not yet complete"
+        sleep 10
+    fi
+done
+
+echo "bootstrap complete"
+exit 0
 
