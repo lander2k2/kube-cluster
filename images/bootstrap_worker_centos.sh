@@ -91,3 +91,8 @@ while [ $JOINED -eq 0 ]; do
     fi
 done
 
+# clean
+sudo rm -rf /tmp/image_repo \
+    /tmp/join \
+    /tmp/proxy_ep
+

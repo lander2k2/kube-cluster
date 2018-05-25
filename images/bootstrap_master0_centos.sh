@@ -189,3 +189,16 @@ sudo kubectl --kubeconfig /etc/kubernetes/admin.conf apply -f /etc/k8s_bootstrap
 sudo kubeadm token create --description "Token created and used by kube-cluster bootstrapper" --print-join-command > /tmp/join
 sudo chown centos:centos /tmp/join
 
+# clean
+sudo rm -rf /tmp/etc
+sudo rm /tmp/api_lb_ep \
+    /tmp/etcd0_ip \
+    /tmp/etcd1_ip \
+    /tmp/etcd2_ip \
+    /tmp/etcd_tls.tar.gz \
+    /tmp/image_repo \
+    /tmp/join \
+    /tmp/k8s_tls.tar.gz \
+    /tmp/kubeadm-config.yaml \
+    /tmp/proxy_ep
+

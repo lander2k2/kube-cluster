@@ -183,3 +183,15 @@ done
 # initialize
 sudo kubeadm init --config=/tmp/kubeadm-config.yaml
 
+# clean
+sudo rm -rf /tmp/etc
+sudo rm /tmp/api_lb_ep \
+    /tmp/etcd0_ip \
+    /tmp/etcd1_ip \
+    /tmp/etcd2_ip \
+    /tmp/etcd_tls.tar.gz \
+    /tmp/image_repo \
+    /tmp/k8s_tls.tar.gz \
+    /tmp/kubeadm-config.yaml \
+    /tmp/proxy_ep
+

@@ -178,3 +178,9 @@ sudo systemctl daemon-reload
 sudo systemctl enable etcd
 sudo systemctl start etcd
 
+# clean
+sudo rm /tmp/etcd_member \
+    /tmp/etcd_tls.tar.gz \
+    /tmp/init_cluster \
+    /tmp/private_ip
+
