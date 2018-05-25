@@ -1,9 +1,13 @@
 #!/bin/bash
 
 USAGE=$(cat << END
-Usage: ./kube-cluster.sh [-h] host_os /path/to/private/key proxy_endpoint image_repo
+Install the control plane for a Kubnernetes cluster using packer, terraform and kubeadm
 
-host_os - the host operating system to use for cluster nodes; must be one of [ubuntu,centos]
+Usage: ./kube-cluster.sh [-h] <host_os> </path/to/private/key> <proxy_endpoint> <image_repo>
+
+Required Arguments:
+host_os - the host operating system to use for cluster nodes;
+must be one of [ ubuntu | centos ]
 
 /path/to/private/key - the local filepath to the ssh private key of the
 named AWS key pair identified in the terraform.tfvars
