@@ -44,7 +44,7 @@ done
 sudo mkdir -p /etc/systemd/system/docker.service.d
 sudo cat > /etc/systemd/system/docker.service.d/http-proxy.conf <<EOF
 [Service]
-Environment="HTTP_PROXY=http://$PROXY_EP:3128/" "HTTPS_PROXY=http://$PROXY_EP:3128/"
+Environment="HTTP_PROXY=http://$PROXY_EP:3128/" "HTTPS_PROXY=http://$PROXY_EP:3128/" "NO_PROXY=docker-pek.cnqr-cn.com,$HOSTNAME,localhost,127.0.0.1,169.254.169.254"
 EOF
 
 sudo systemctl daemon-reload
@@ -83,13 +83,7 @@ sudo systemctl restart kubelet
 while [ $JOINED -eq 0 ]; do
     if [ -f /tmp/join ]; then
         echo "Joining node to cluster..."
-        HTTP_PROXY=http://$PROXY_EP:3128 \
-            http_proxy=http://$PROXY_EP:3128 \
-            HTTPS_PROXY=http://$PROXY_EP:3128 \
-            https_proxy=http://$PROXY_EP:3128 \
-            NO_PROXY=10.0.0.0/16,192.168.0.0/16 \
-            no_proxy=10.0.0.0/16,192.168.0.0/16 \
-            sudo -E bash -c '$(cat /tmp/join)'
+        sudo $(cat /tmp/join)
         JOINED=1
     else
         echo "Join command not yet available - sleeping..."
