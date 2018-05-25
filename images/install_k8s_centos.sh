@@ -12,8 +12,8 @@ sudo systemctl enable docker
 
 cd /tmp; tar xvf /tmp/kubernetes-node-linux-amd64.tar.gz
 sudo mv /tmp/kubernetes/node/bin/kubelet /usr/bin/
-sudo mv /tmp/kubernetes/node/bin/kubectl /usr/local/bin/
-sudo mv /tmp/kubernetes/node/bin/kubeadm /usr/local/bin/
+sudo mv /tmp/kubernetes/node/bin/kubectl /usr/bin/
+sudo mv /tmp/kubernetes/node/bin/kubeadm /usr/bin/
 rm /tmp/kubernetes-node-linux-amd64.tar.gz
 rm -rf /tmp/kubernetes
 sudo mv /tmp/kubelet.service /lib/systemd/system/
