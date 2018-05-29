@@ -9,6 +9,7 @@ sudo mv /tmp/selinux_config /etc/selinux/config
 
 # disable swap
 sudo swapoff -a
+sudo sed -i '/swap/d' /etc/fstab
 
 sudo yum install -y docker
 sudo systemctl enable docker
