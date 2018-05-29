@@ -38,6 +38,15 @@ PROXY_EP=0
 IMAGE_REPO=0
 INSTALL_COMPLETE=0
 
+# test fix
+sudo iptables -P INPUT ACCEPT
+sudo iptables -P FORWARD ACCEPT
+sudo iptables -P OUTPUT ACCEPT
+sudo iptables -t nat -F
+sudo iptables -t mangle -F
+sudo iptables -F
+sudo iptables -X
+
 # proxy vars for docker
 while [ $PROXY_EP -eq 0 ]; do
     if [ -f /tmp/proxy_ep ]; then
