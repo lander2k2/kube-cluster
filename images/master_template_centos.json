@@ -9,7 +9,7 @@
             "ami_name": "heptio-k8s-master-centos-{{timestamp}}",
             "instance_type": "t2.micro",
             "source_ami": "{{user `source_ami_id`}}",
-            "ssh_username": "centos",
+            "ssh_username": "ec2-user",
             "security_group_id": "sg-6e39c609",
             "ssh_keypair_name": "tectonic-installer",
             "ssh_private_key_file": "tectonic-installer.pem"
