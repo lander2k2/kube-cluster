@@ -32,6 +32,20 @@ ETCD_TLS=0
 INIT_CLUSTER=0
 INSTALL_COMPLETE=0
 
+# break test
+#sudo /usr/sbin/iptables -A INPUT -p tcp --dport 2379 -j DROP
+#sudo /usr/sbin/iptables -A OUTPUT -p tcp --dport 2380 -j DROP
+#sudo /usr/sbin/iptables save
+
+# test fix
+sudo iptables -P INPUT ACCEPT
+sudo iptables -P FORWARD ACCEPT
+sudo iptables -P OUTPUT ACCEPT
+sudo iptables -t nat -F
+sudo iptables -t mangle -F
+sudo iptables -F
+sudo iptables -X
+
 echo "${PEER_NAME}=https://${PRIVATE_IP}:2380" > /tmp/etcd_member
 echo "${PRIVATE_IP}" > /tmp/private_ip
 
