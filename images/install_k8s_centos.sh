@@ -7,6 +7,9 @@ sudo yum clean all
 # disable SELinux
 sudo mv /tmp/selinux_config /etc/selinux/config
 
+# disable swap
+sudo swapoff -a
+
 sudo yum install -y docker
 sudo systemctl enable docker
 
