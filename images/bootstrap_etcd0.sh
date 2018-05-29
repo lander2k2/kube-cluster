@@ -31,12 +31,7 @@ PEER_NAME=$(hostname)
 INIT_CLUSTER=0
 INSTALL_COMPLETE=0
 
-# break test
-#sudo /usr/sbin/iptables -A INPUT -p tcp --dport 2379 -j DROP
-#sudo /usr/sbin/iptables -A OUTPUT -p tcp --dport 2380 -j DROP
-#sudo /usr/sbin/iptables save
-
-# test fix
+# reset any existing iptables rules
 sudo iptables -P INPUT ACCEPT
 sudo iptables -P FORWARD ACCEPT
 sudo iptables -P OUTPUT ACCEPT

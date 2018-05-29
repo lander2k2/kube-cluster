@@ -38,7 +38,14 @@ PROXY_EP=0
 IMAGE_REPO=0
 INSTALL_COMPLETE=0
 
-# test fix
+# ensure iptables are used correctly
+cat <<EOF >  /etc/sysctl.d/k8s.conf
+net.bridge.bridge-nf-call-ip6tables = 1
+net.bridge.bridge-nf-call-iptables = 1
+EOF
+sysctl --system
+
+# reset any existing iptables rules
 sudo iptables -P INPUT ACCEPT
 sudo iptables -P FORWARD ACCEPT
 sudo iptables -P OUTPUT ACCEPT

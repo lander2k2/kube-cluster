@@ -43,7 +43,7 @@ net.bridge.bridge-nf-call-iptables = 1
 EOF
 sysctl --system
 
-# test fix
+# reset any existing iptables rules
 sudo iptables -P INPUT ACCEPT
 sudo iptables -P FORWARD ACCEPT
 sudo iptables -P OUTPUT ACCEPT
