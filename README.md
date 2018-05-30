@@ -2,9 +2,11 @@
 
 A utility to deploy Kubernetes clusters to AWS using kubeadm, terraform and packer.
 
-Note: This is still in development.  Do not use for production unless you clearly understand how this installation process works and are capable of testing and verifying the results in your cluster.
-
-The Kubernetes community is still refining the management of cluster lifecycles.  This repo simply offers a convenience until those processes are refined.
+This branch supports the following:
+* installing into an existing VPC
+* installing Kubernetes without access to the required package repositories
+* use of an HTTP proxy for access from the cluster to the public internet
+* using an image repo other than google container registry for pulling control plane images
 
 ## Prerequisites
 
@@ -15,9 +17,9 @@ The Kubernetes community is still refining the management of cluster lifecycles.
 
 ## Overview
 
-* Use packer to build Ubuntu-based images that have services installed that will bootstrap k8s using kubeadm.
+* Use packer to build CentOS-based images that have services installed that will bootstrap k8s using kubeadm.
 * Use the kube-cluster.sh script to deploy the control plane with terraform and coordinate the bootstrapping.
-* Use terraform to deploy the worker ASG.
+* Use terraform to deploy the worker auto-scaling-group.
 * Use terraform to tear down the cluster when finished.
 
 There are five distinct roles:
@@ -28,7 +30,6 @@ There are five distinct roles:
 * the `master` nodes are added for HA
 * the `worker` node/s are for workloads
 
-This version supports the use of an HTTP proxy for access from the cluster to the public internet.  It also supports using an image repo other than google container registry for pulling control plane images.
 
 ## Usage
 
@@ -55,8 +56,8 @@ This version supports the use of an HTTP proxy for access from the cluster to th
     * key pair
     * VPC ID
     * subnet IDs
-    * desired instance type
-    * number or workers
+    * desired instance types
+    * initial worker count
 
     We'll add the AMIs after the images are built.
 
@@ -73,7 +74,7 @@ This version supports the use of an HTTP proxy for access from the cluster to th
 6. Deploy the control plane.  This will stand up an etcd cluster and 3 master nodes.
 ```
     $ cd ../
-    $ ./kube-cluster.sh [/path/to/private/key] [proxy_endpoint] [image_repo]
+    $ ./kube-cluster.sh centos [/path/to/private/key] [proxy_endpoint] [image_repo]
 ```
 
 7. Check the control plane is ready.  A kubeconfig file will have been pulled down so you can use `kubectl` to check the cluster.  You should get ouput similar to below.
@@ -115,7 +116,4 @@ Change the terraform configs to add/remove/change the AWS infrastructure that yo
 
 ### kube-cluster script
 This script coordinates the bootstrapping process by moving files between nodes.  Alter this script if you have to coordinate other operations between nodes.
-
-## TODO
-* clean up tmp files on servers after install
 
