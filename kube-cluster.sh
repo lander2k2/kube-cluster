@@ -2,8 +2,11 @@
 
 USAGE=$(cat << END
 Usage: ./kube-cluster.sh [-h] /path/to/private/key
+
 Provide the private key that will grant access to EC2 instances
-This utility will deploy a test k8s cluster with 3 masters and one worker in AWS
+
+This utility will deploy a test k8s cluster with 3 masters, etcd co-hosted on masters
+Number of workers statically defined in terraform.tfvars
 END
 )
 
