@@ -95,7 +95,9 @@ ETCD_IPS=$(terraform output etcd_ip)
 echo "pausing for 3 min to allow infrastructure to spin up..."
 sleep 180
 
-mkdir /tmp/kube-cluster
+if [ ! -d /tmp/kube-cluster ]; then
+    mkdir /tmp/kube-cluster
+fi
 
 # distribute proxy endpoint to masters
 echo "$PROXY_EP" > /tmp/kube-cluster/proxy_ep
@@ -193,7 +195,9 @@ sed -i -e "s/$MASTER0_IP/$API_LB_EP/g" ./kubeconfig
 echo "kubeconfig retrieved"
 
 # generate user data script for worker asg
-mkdir /tmp/kube-workers
+if [ ! -d /tmp/kube-workers ]; then
+    mkdir /tmp/kube-workers
+fi
 cat > /tmp/kube-workers/worker-bootstrap.sh <<EOF
 #cloud-boothook
 #!/bin/bash
