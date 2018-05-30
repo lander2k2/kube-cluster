@@ -28,8 +28,8 @@ resource "aws_security_group" "worker_sg" {
     cidr_blocks = ["${data.aws_vpc.existing.cidr_block}"]
   }
   ingress {
-    from_port   = 10250
-    to_port     = 10250
+    from_port   = 10255
+    to_port     = 10255
     protocol    = "TCP"
     cidr_blocks = ["${data.aws_vpc.existing.cidr_block}"]
   }
@@ -43,14 +43,7 @@ resource "aws_security_group" "worker_sg" {
     from_port   = 22
     to_port     = 22
     protocol    = "TCP"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-  # calico typha
-  ingress {
-    from_port   = 5473
-    to_port     = 5473
-    protocol    = "TCP"
-    cidr_blocks = ["0.0.0.0/0"]
+    cidr_blocks = ["${data.aws_vpc.existing.cidr_block}"]
   }
 
   egress {

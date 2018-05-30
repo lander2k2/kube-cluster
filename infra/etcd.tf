@@ -7,16 +7,22 @@ resource "aws_security_group" "etcd_sg" {
   vpc_id = "${var.vpc_id}"
 
   ingress {
-    from_port   = 2379
-    to_port     = 2380
-    protocol    = "TCP"
-    cidr_blocks = ["${data.aws_vpc.existing.cidr_block}"]
+    from_port       = 2379
+    to_port         = 2379
+    protocol        = "TCP"
+    security_groups = ["${aws_security_group.master_sg.id}"]
+  }
+  ingress {
+    from_port = 2380
+    to_port   = 2380
+    protocol  = "TCP"
+    self      = "true"
   }
   ingress {
     from_port   = 22
     to_port     = 22
     protocol    = "TCP"
-    cidr_blocks = ["0.0.0.0/0"]
+    cidr_blocks = ["${data.aws_vpc.existing.cidr_block}"]
   }
 
   egress {
