@@ -74,6 +74,8 @@ trusted_send() {
         $HOST_OS@$REMOTE_HOST "mv /tmp/tempfile $REMOTE_PATH"
 }
 
+set -e
+
 # provision the control plane
 terraform init infra
 terraform apply -auto-approve infra
