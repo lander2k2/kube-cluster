@@ -1,5 +1,6 @@
 [Unit]
 Description=Bootstrap additional etcd nodes in a kubernetes cluster
+ConditionPathExists=!/etc/kubernetes/pki/etcd
 
 [Service]
 Type=forking

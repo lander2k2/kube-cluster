@@ -1,5 +1,6 @@
 [Unit]
 Description=Join a worker node to kubernetes cluster
+ConditionPathExists=!/etc/kubernetes/pki
 
 [Service]
 Type=forking

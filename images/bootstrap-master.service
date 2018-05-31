@@ -1,5 +1,6 @@
 [Unit]
 Description=Bootstrap addon master nodes in a kubernetes cluster
+ConditionPathExists=!/etc/kubernetes/pki
 
 [Service]
 Type=forking

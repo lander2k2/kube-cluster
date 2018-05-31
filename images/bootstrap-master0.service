@@ -1,5 +1,6 @@
 [Unit]
 Description=Bootstrap the first master node in a kubernetes cluster
+ConditionPathExists=!/etc/kubernetes/pki
 
 [Service]
 Type=forking
