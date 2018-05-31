@@ -10,6 +10,7 @@ resource "aws_security_group" "etcd_sg" {
     from_port       = 2379
     to_port         = 2379
     protocol        = "TCP"
+    self            = "true"
     security_groups = ["${aws_security_group.master_sg.id}"]
   }
   ingress {
