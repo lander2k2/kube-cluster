@@ -30,12 +30,25 @@ resource "aws_security_group" "worker_sg" {
     protocol    = "TCP"
     cidr_blocks = ["0.0.0.0/0"]
   }
+  # calico
+  ingress {
+    from_port   = 179
+    to_port     = 179
+    protocol    = "TCP"
+    cidr_blocks = ["10.0.0.0/16"]
+  }
+  ingress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "4"
+    cidr_blocks = ["10.0.0.0/16"]
+  }
   # calico typha
   ingress {
     from_port   = 5473
     to_port     = 5473
     protocol    = "TCP"
-    cidr_blocks = ["0.0.0.0/0"]
+    cidr_blocks = ["10.0.0.0/16"]
   }
 
   egress {
