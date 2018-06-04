@@ -43,6 +43,8 @@ trusted_send() {
         ubuntu@$REMOTE_HOST "mv /tmp/tempfile $REMOTE_PATH"
 }
 
+set -e
+
 # provision that action
 terraform init infra
 terraform apply -auto-approve infra
@@ -59,7 +61,9 @@ WORKERS=$(terraform output worker_ep)
 echo "pausing for 3 min to allow infrastructure to spin up..."
 sleep 180
 
-mkdir /tmp/kube-cluster
+if [ ! -d /tmp/kube-cluster ]; then
+    mkdir /tmp/kube-cluster
+fi
 
 # distribute K8s API endpoint
 echo "$API_LB_EP" > /tmp/kube-cluster/api_lb_ep
