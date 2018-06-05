@@ -1,0 +1,17 @@
+gcr.io/heptio-images/sonobuoy:latest
+gcr.io/heptio-images/sonobuoy-plugin-systemd-logs:latest
+docker.io/busybox:latest
+gcr.io/heptio-images/kube-conformance:latest
+gcr.io/kubernetes-e2e-test-images/hostexec-amd64:1.1
+gcr.io/kubernetes-e2e-test-images/liveness-amd64:1.0
+gcr.io/kubernetes-e2e-test-images/test-webserver-amd64:1.0
+k8s.gcr.io/nginx-slim-amd64:0.21
+gcr.io/kubernetes-e2e-test-images/serve-hostname-amd64:1.0
+gcr.io/kubernetes-e2e-test-images/porter-amd64:1.0
+gcr.io/kubernetes-e2e-test-images/nettest-amd64:1.0
+gcr.io/kubernetes-e2e-test-images/netexec-amd64:1.0
+gcr.io/kubernetes-e2e-test-images/mounttest-user-amd64:1.0
+gcr.io/kubernetes-e2e-test-images/mounttest-amd64:1.0
+gcr.io/kubernetes-e2e-test-images/entrypoint-tester-amd64:1.0
+k8s.gcr.io/nginx-slim-amd64:0.20
+

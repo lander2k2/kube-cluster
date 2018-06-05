@@ -46,6 +46,11 @@
             "destination": "/tmp/bootstrap-worker.service"
         },
         {
+            "type": "file",
+            "source": "sonobuoy_images.tar",
+            "destination": "/tmp/sonobuoy_images.tar"
+        },
+        {
             "type": "shell",
             "script": "./move_files.sh",
             "environment_vars": "ROLE=worker"
