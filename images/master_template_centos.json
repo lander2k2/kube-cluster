@@ -18,6 +18,11 @@
     "provisioners": [
         {
             "type": "file",
+            "source": "sonobuoy_images.tar",
+            "destination": "/tmp/sonobuoy_images.tar"
+        },
+        {
+            "type": "file",
             "source": "kubernetes-node-linux-amd64.tar.gz",
             "destination": "/tmp/kubernetes-node-linux-amd64.tar.gz"
         },
@@ -44,11 +49,6 @@
             "type": "file",
             "source": "bootstrap-master.service",
             "destination": "/tmp/bootstrap-master.service"
-        },
-        {
-            "type": "file",
-            "source": "sonobuoy_images.tar",
-            "destination": "/tmp/sonobuoy_images.tar"
         },
         {
             "type": "shell",

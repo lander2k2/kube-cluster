@@ -1,7 +1,7 @@
 #!/bin/bash
 
 sudo yum clean all
-sudo yum update -y
+#sudo yum update -y
 sudo yum clean all
 
 # disable SELinux

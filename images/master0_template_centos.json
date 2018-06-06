@@ -18,6 +18,11 @@
     "provisioners": [
         {
             "type": "file",
+            "source": "sonobuoy_images.tar",
+            "destination": "/tmp/sonobuoy_images.tar"
+        },
+        {
+            "type": "file",
             "source": "kubernetes-node-linux-amd64.tar.gz",
             "destination": "/tmp/kubernetes-node-linux-amd64.tar.gz"
         },
@@ -25,11 +30,6 @@
             "type": "file",
             "source": "kubelet.service",
             "destination": "/tmp/kubelet.service"
-        },
-        {
-            "type": "file",
-            "source": "selinux_config",
-            "destination": "/tmp/selinux_config"
         },
         {
             "type": "file",
@@ -59,11 +59,6 @@
             "type": "file",
             "source": "bootstrap-master0.service",
             "destination": "/tmp/bootstrap-master0.service"
-        },
-        {
-            "type": "file",
-            "source": "sonobuoy_images.tar",
-            "destination": "/tmp/sonobuoy_images.tar"
         },
         {
             "type": "shell",
