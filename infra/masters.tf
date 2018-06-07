@@ -1,6 +1,11 @@
 variable "master0_ami" {}
 variable "master_ami" {}
-variable "master_type" {}
+variable "master_type" {
+  default = "m4.xlarge"
+}
+variable "master_disk_size" {
+  default = 100
+}
 
 resource "aws_security_group" "master_sg" {
   name   = "master_sg"
@@ -87,14 +92,21 @@ resource "aws_security_group" "master_lb_sg" {
 }
 
 resource "aws_instance" "master0_node" {
-  count                       = 1
-  ami                         = "${var.master0_ami}"
-  instance_type               = "${var.master_type}"
-  subnet_id                   = "${var.primary_subnet}"
-  vpc_security_group_ids      = ["${aws_security_group.master_sg.id}"]
-  key_name                    = "${var.key_name}"
+  count                  = 1
+  ami                    = "${var.master0_ami}"
+  instance_type          = "${var.master_type}"
+  subnet_id              = "${var.primary_subnet}"
+  vpc_security_group_ids = ["${aws_security_group.master_sg.id}"]
+  key_name               = "${var.key_name}"
+
+  root_block_device {
+    volume_type           = "gp2"
+    volume_size           = "${var.master_disk_size}"
+    delete_on_termination = true
+  }
+
   tags {
-    Name = "heptio-master0"
+    Name   = "heptio-master0"
     vendor = "heptio"
   }
 }
@@ -106,8 +118,15 @@ resource "aws_instance" "master_node" {
   subnet_id              = "${var.primary_subnet}"
   vpc_security_group_ids = ["${aws_security_group.master_sg.id}"]
   key_name               = "${var.key_name}"
+
+  root_block_device {
+    volume_type           = "gp2"
+    volume_size           = "${var.master_disk_size}"
+    delete_on_termination = true
+  }
+
   tags {
-    Name = "heptio-master"
+    Name   = "heptio-master"
     vendor = "heptio"
   }
 }

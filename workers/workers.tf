@@ -11,7 +11,12 @@ variable "secondary_subnet" {}
 
 variable "worker_count" {}
 variable "worker_ami" {}
-variable "worker_type" {}
+variable "worker_type" {
+  default = "m4.4xlarge"
+}
+variable "worker_disk_size" {
+  default = 100
+}
 
 provider "aws" {
     version = "1.14.1"
@@ -83,13 +88,19 @@ resource "aws_launch_configuration" "worker" {
   security_groups = ["${aws_security_group.worker_sg.id}"]
   user_data       = "${data.local_file.user_data.content}"
 
+  root_block_device {
+    volume_type           = "gp2"
+    volume_size           = "${var.worker_disk_size}"
+    delete_on_termination = true
+  }
+
   lifecycle {
     create_before_destroy = true
   }
 }
 
 resource "aws_autoscaling_group" "workers" {
-  name                 = "heptio-workers"
+  name                 = "heptio-worker"
   vpc_zone_identifier  = ["${var.primary_subnet}", "${var.secondary_subnet}"]
   desired_capacity     = "${var.worker_count}"
   max_size             = "${var.worker_count + 1}"

@@ -1,6 +1,11 @@
 variable "etcd0_ami" {}
 variable "etcd_ami" {}
-variable "etcd_type" {}
+variable "etcd_type" {
+  default = "m4.large"
+}
+variable "etcd_disk_size" {
+  default = 100
+}
 
 resource "aws_security_group" "etcd_sg" {
   name   = "etcd_sg"
@@ -46,8 +51,16 @@ resource "aws_instance" "etcd0_node" {
   subnet_id              = "${var.primary_subnet}"
   vpc_security_group_ids = ["${aws_security_group.etcd_sg.id}"]
   key_name               = "${var.key_name}"
+
+  root_block_device {
+    volume_type           = "io1"
+    volume_size           = "${var.etcd_disk_size}"
+    iops                  = 5000
+    delete_on_termination = false
+  }
+
   tags {
-    Name = "heptio-etcd0"
+    Name   = "heptio-etcd0"
     vendor = "heptio"
   }
 }
@@ -59,8 +72,16 @@ resource "aws_instance" "etcd_node" {
   subnet_id              = "${var.primary_subnet}"
   vpc_security_group_ids = ["${aws_security_group.etcd_sg.id}"]
   key_name               = "${var.key_name}"
+
+  root_block_device {
+    volume_type           = "io1"
+    volume_size           = "${var.etcd_disk_size}"
+    iops                  = 5000
+    delete_on_termination = false
+  }
+
   tags {
-    Name = "heptio-etcd"
+    Name   = "heptio-etcd"
     vendor = "heptio"
   }
 }

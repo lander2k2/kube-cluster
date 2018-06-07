@@ -19,9 +19,16 @@ master_ami = ""
 worker_ami = ""
 
 // EC2 instance types
-etcd_type = "t2.medium"
-master_type = "t2.medium"
-worker_type = "t2.medium"
+// Optional, defaults are below
+//etcd_type = "m4.large"
+//master_type = "m4.xlarge"
+//worker_type = "m4.4xlarge"
+
+// Root disk sizes
+// Optional, default is 100 GB for each
+//etcd_disk_size = "100"
+//master_disk_size = "100"
+//worker_disk_size = "100"
 
 // Number of workers to deploy initially
 // These can be subsequently scaled with an ASG
