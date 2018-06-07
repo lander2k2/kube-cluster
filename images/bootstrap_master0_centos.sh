@@ -188,6 +188,7 @@ apiServerCertSANs:
 apiServerExtraArgs:
   endpoint-reconciler-type: "lease"
 kubernetesVersion: "1.9.7"
+cloudProvider: "aws"
 imageRepository: $IMAGE_REPO
 EOF
 
