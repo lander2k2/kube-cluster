@@ -12,6 +12,7 @@ sudo swapoff -a
 sudo sed -i '/swap/d' /etc/fstab
 
 sudo yum install -y docker
+sudo systemctl start docker
 sudo systemctl enable docker
 
 cd /tmp; tar xvf /tmp/kubernetes-node-linux-amd64.tar.gz
@@ -29,6 +30,6 @@ sudo curl -o /usr/local/bin/cfssljson https://pkg.cfssl.org/R1.2/cfssljson_linux
 sudo chmod +x /usr/local/bin/cfssl*
 
 for pkg in $(ls /tmp/*_images.tar); do
-    docker load --input $pkg
+    sudo docker load --input $pkg
 done
 
