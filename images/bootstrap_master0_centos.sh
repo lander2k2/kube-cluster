@@ -156,6 +156,16 @@ while [ $ETCD2_IP -eq 0 ]; do
     fi
 done
 
+# API DNS name
+while [ $API_DNS -eq 0 ]; do
+    if [ -f /tmp/api_dns ]; then
+        API_DNS=$(cat /tmp/api_dns)
+    else
+        echo "API DNS not yet available"
+        sleep 10
+    fi
+done
+
 # generate kubeadm config
 cat > /tmp/kubeadm-config.yaml <<EOF
 apiVersion: kubeadm.k8s.io/v1alpha1
@@ -174,6 +184,7 @@ networking:
   podSubnet: 192.168.0.0/16
 apiServerCertSANs:
 - ${API_LB_EP}
+- ${API_DNS}
 apiServerExtraArgs:
   endpoint-reconciler-type: "lease"
 kubernetesVersion: "1.9.7"

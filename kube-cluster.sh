@@ -3,7 +3,7 @@
 USAGE=$(cat << END
 Install the control plane for a Kubnernetes cluster using packer, terraform and kubeadm
 
-Usage: ./kube-cluster.sh [-h] <host_os> </path/to/private/key> <proxy_endpoint> <image_repo>
+Usage: ./kube-cluster.sh [-h] <host_os> </path/to/private/key> <proxy_endpoint> <image_repo> <api_dns>
 
 Required Arguments:
 host_os - the host operating system to use for cluster nodes;
@@ -17,6 +17,8 @@ access to the public internet for the cluster
 
 image_repo - the image reposistory to pull images from when installing
 cluster, e.g. quay.io/my_repo
+
+api_dns - the URL that has been registered in DNS that will be used to connect to API
 END
 )
 
@@ -39,12 +41,17 @@ elif [ "$4" = "" ]; then
     echo "Error: missing image repo argument"
     echo "$USAGE"
     exit 1
+elif [ "$5" = "" ]; then
+    echo "Error: missing api dns argument"
+    echo "$USAGE"
+    exit 1
 fi
 
 HOST_OS=$1
 KEY_PATH=$2
 PROXY_EP=$3
 IMAGE_REPO=$4
+API_DNS=$5
 
 if [ $HOST_OS != "ubuntu" ] && [ $HOST_OS != "centos" ]; then
     echo "Error: unrecognized host OS"
@@ -112,6 +119,13 @@ trusted_send /tmp/kube-cluster/image_repo $MASTER0 /tmp/image_repo
 trusted_send /tmp/kube-cluster/image_repo $MASTER1 /tmp/image_repo
 trusted_send /tmp/kube-cluster/image_repo $MASTER2 /tmp/image_repo
 echo "image repo sent to masters"
+
+# distribute API DNS to masters
+echo "$API_DNS" > /tmp/kube-cluster/api_dns
+trusted_send /tmp/kube-cluster/api_dns $MASTER0 /tmp/api_dns
+trusted_send /tmp/kube-cluster/api_dns $MASTER1 /tmp/api_dns
+trusted_send /tmp/kube-cluster/api_dns $MASTER2 /tmp/api_dns
+echo "API DNS name sent to masters"
 
 # distribute K8s API endpoint
 echo "$API_LB_EP" > /tmp/kube-cluster/api_lb_ep
