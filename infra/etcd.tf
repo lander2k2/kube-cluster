@@ -51,6 +51,7 @@ resource "aws_instance" "etcd0_node" {
   subnet_id              = "${var.primary_subnet}"
   vpc_security_group_ids = ["${aws_security_group.etcd_sg.id}"]
   key_name               = "${var.key_name}"
+  ebs_optimized          = "true"
 
   root_block_device {
     volume_type           = "io1"
@@ -72,6 +73,7 @@ resource "aws_instance" "etcd_node" {
   subnet_id              = "${var.primary_subnet}"
   vpc_security_group_ids = ["${aws_security_group.etcd_sg.id}"]
   key_name               = "${var.key_name}"
+  ebs_optimized          = "true"
 
   root_block_device {
     volume_type           = "io1"

@@ -98,11 +98,12 @@ resource "aws_instance" "master0_node" {
   subnet_id              = "${var.primary_subnet}"
   vpc_security_group_ids = ["${aws_security_group.master_sg.id}"]
   key_name               = "${var.key_name}"
+  ebs_optimized          = "true"
 
   root_block_device {
     volume_type           = "gp2"
     volume_size           = "${var.master_disk_size}"
-    delete_on_termination = true
+    delete_on_termination = "true"
   }
 
   tags {
@@ -118,11 +119,12 @@ resource "aws_instance" "master_node" {
   subnet_id              = "${var.primary_subnet}"
   vpc_security_group_ids = ["${aws_security_group.master_sg.id}"]
   key_name               = "${var.key_name}"
+  ebs_optimized          = "true"
 
   root_block_device {
     volume_type           = "gp2"
     volume_size           = "${var.master_disk_size}"
-    delete_on_termination = true
+    delete_on_termination = "true"
   }
 
   tags {
