@@ -22,6 +22,92 @@ provider "aws" {
     version = "1.14.1"
 }
 
+resource "aws_iam_role" "worker_role" {
+    name = "worker_role"
+
+    assume_role_policy = <<EOF
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Action": "sts:AssumeRole",
+            "Principal": {
+                "Service": "ec2.amazonaws.com"
+            },
+            "Effect": "Allow",
+            "Sid": ""
+        }
+    ]
+}
+EOF
+}
+
+resource "aws_iam_role_policy" "worker_policy" {
+    name = "worker_policy"
+    role = "${aws_iam_role.worker_role.id}"
+
+    policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": "ec2:Describe*",
+      "Resource": "*"
+    },
+    {
+      "Effect": "Allow",
+      "Action": "ec2:AttachVolume",
+      "Resource": "*"
+    },
+    {
+      "Effect": "Allow",
+      "Action": "ec2:DetachVolume",
+      "Resource": "*"
+    },
+    {
+      "Action": "elasticloadbalancing:*",
+      "Resource": "*",
+      "Effect": "Allow"
+    },
+    {
+      "Action": [
+        "ecr:GetAuthorizationToken",
+        "ecr:BatchCheckLayerAvailability",
+        "ecr:GetDownloadUrlForLayer",
+        "ecr:GetRepositoryPolicy",
+        "ecr:DescribeRepositories",
+        "ecr:ListImages",
+        "ecr:BatchGetImage"
+      ],
+      "Resource": "*",
+      "Effect": "Allow"
+    },
+    {
+      "Action" : [
+        "s3:GetObject"
+      ],
+      "Resource": "arn:aws:s3:::*",
+      "Effect": "Allow"
+    },
+    {
+      "Action" : [
+        "autoscaling:DescribeAutoScalingGroups",
+        "autoscaling:DescribeAutoScalingInstances"
+      ],
+      "Resource": "*",
+      "Effect": "Allow"
+    }
+  ]
+}
+EOF
+}
+
+resource "aws_iam_instance_profile" "worker_profile" {
+  name = "k8s_worker_profile"
+  role = "${aws_iam_role.worker_role.name}"
+}
+
 resource "aws_security_group" "worker_sg" {
   name   = "worker_sg"
   vpc_id = "${var.vpc_id}"
@@ -54,13 +140,13 @@ resource "aws_security_group" "worker_sg" {
     from_port   = 179
     to_port     = 179
     protocol    = "TCP"
-    cidr_blocks = ["10.0.0.0/16"]
+    cidr_blocks = ["${data.aws_vpc.existing.cidr_block}"]
   }
   ingress {
     from_port   = 0
     to_port     = 0
     protocol    = "4"
-    cidr_blocks = ["10.0.0.0/16"]
+    cidr_blocks = ["${data.aws_vpc.existing.cidr_block}"]
   }
 
   egress {
@@ -81,13 +167,14 @@ data "local_file" "user_data" {
 }
 
 resource "aws_launch_configuration" "worker" {
-  name_prefix     = "heptio-worker"
-  image_id        = "${var.worker_ami}"
-  instance_type   = "${var.worker_type}"
-  key_name        = "${var.key_name}"
-  security_groups = ["${aws_security_group.worker_sg.id}"]
-  user_data       = "${data.local_file.user_data.content}"
-  ebs_optimized   = "true"
+  name_prefix          = "heptio-worker"
+  image_id             = "${var.worker_ami}"
+  instance_type        = "${var.worker_type}"
+  key_name             = "${var.key_name}"
+  security_groups      = ["${aws_security_group.worker_sg.id}"]
+  user_data            = "${data.local_file.user_data.content}"
+  ebs_optimized        = "true"
+  iam_instance_profile = "${aws_iam_instance_profile.worker_profile.name}"
 
   root_block_device {
     volume_type           = "gp2"
@@ -100,13 +187,50 @@ resource "aws_launch_configuration" "worker" {
   }
 }
 
+#resource "aws_network_interface" "worker" {
+#  subnet_id         = "${var.primary_subnet}"
+#  security_groups   = ["${aws_security_group.worker_sg.id}"]
+#  source_dest_check = "false"
+#}
+#
+#resource "aws_launch_template" "worker" {
+#  name_prefix   = "heptio-worker"
+#  image_id      = "${var.worker_ami}"
+#  instance_type = "${var.worker_type}"
+#  key_name      = "${var.key_name}"
+#  user_data     = "${base64encode("${data.local_file.user_data.content}")}"
+#  #ebs_optimized = "true"
+#
+#  block_device_mappings {
+#    device_name = "/dev/sda1"
+#    ebs {
+#      volume_size           = "${var.worker_disk_size}"
+#      volume_type           = "gp2"
+#      delete_on_termination = true
+#    }
+#  }
+#
+#  iam_instance_profile {
+#    name = "${aws_iam_instance_profile.worker_profile.name}"
+#  }
+#
+#  network_interfaces {
+#    network_interface_id = "${aws_network_interface.worker.id}"
+#  }
+#}
+
 resource "aws_autoscaling_group" "workers" {
   name                 = "heptio-worker"
   vpc_zone_identifier  = ["${var.primary_subnet}", "${var.secondary_subnet}"]
+  #vpc_zone_identifier  = ["${var.primary_subnet}"]
   desired_capacity     = "${var.worker_count}"
   max_size             = "${var.worker_count + 1}"
   min_size             = "${var.worker_count}"
   launch_configuration = "${aws_launch_configuration.worker.name}"
+
+  #launch_template {
+  #  id = "${aws_launch_template.worker.id}"
+  #}
 
   tags = [
     {
@@ -117,6 +241,11 @@ resource "aws_autoscaling_group" "workers" {
     {
       key                 = "vendor"
       value               = "heptio"
+      propagate_at_launch = true
+    },
+    {
+      key                 = "kubernetes.io/cluster/cl01"
+      value               = "owned"
       propagate_at_launch = true
     }
   ]

@@ -7,6 +7,92 @@ variable "master_disk_size" {
   default = 100
 }
 
+resource "aws_iam_role" "master_role" {
+    name = "master_role"
+
+    assume_role_policy = <<EOF
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Action": "sts:AssumeRole",
+            "Principal": {
+                "Service": "ec2.amazonaws.com"
+            },
+            "Effect": "Allow",
+            "Sid": ""
+        }
+    ]
+}
+EOF
+}
+
+resource "aws_iam_role_policy" "master_policy" {
+    name = "master_policy"
+    role = "${aws_iam_role.master_role.id}"
+
+    policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": "ec2:Describe*",
+      "Resource": "*"
+    },
+    {
+      "Effect": "Allow",
+      "Action": "ec2:AttachVolume",
+      "Resource": "*"
+    },
+    {
+      "Effect": "Allow",
+      "Action": "ec2:DetachVolume",
+      "Resource": "*"
+    },
+    {
+      "Action": "elasticloadbalancing:*",
+      "Resource": "*",
+      "Effect": "Allow"
+    },
+    {
+      "Action": [
+        "ecr:GetAuthorizationToken",
+        "ecr:BatchCheckLayerAvailability",
+        "ecr:GetDownloadUrlForLayer",
+        "ecr:GetRepositoryPolicy",
+        "ecr:DescribeRepositories",
+        "ecr:ListImages",
+        "ecr:BatchGetImage"
+      ],
+      "Resource": "*",
+      "Effect": "Allow"
+    },
+    {
+      "Action" : [
+        "s3:GetObject"
+      ],
+      "Resource": "arn:aws:s3:::*",
+      "Effect": "Allow"
+    },
+    {
+      "Action" : [
+        "autoscaling:DescribeAutoScalingGroups",
+        "autoscaling:DescribeAutoScalingInstances"
+      ],
+      "Resource": "*",
+      "Effect": "Allow"
+    }
+  ]
+}
+EOF
+}
+
+resource "aws_iam_instance_profile" "master_profile" {
+  name = "k8s_master_profile"
+  role = "${aws_iam_role.master_role.name}"
+}
+
 resource "aws_security_group" "master_sg" {
   name   = "master_sg"
   vpc_id = "${var.vpc_id}"
@@ -45,13 +131,13 @@ resource "aws_security_group" "master_sg" {
     from_port   = 179
     to_port     = 179
     protocol    = "TCP"
-    cidr_blocks = ["10.0.0.0/16"]
+    cidr_blocks = ["${data.aws_vpc.existing.cidr_block}"]
   }
   ingress {
     from_port   = 0
     to_port     = 0
     protocol    = "4"
-    cidr_blocks = ["10.0.0.0/16"]
+    cidr_blocks = ["${data.aws_vpc.existing.cidr_block}"]
   }
 
   egress {
@@ -99,6 +185,8 @@ resource "aws_instance" "master0_node" {
   vpc_security_group_ids = ["${aws_security_group.master_sg.id}"]
   key_name               = "${var.key_name}"
   ebs_optimized          = "true"
+  iam_instance_profile   = "${aws_iam_instance_profile.master_profile.name}"
+  source_dest_check      = "false"
 
   root_block_device {
     volume_type           = "gp2"
@@ -107,8 +195,9 @@ resource "aws_instance" "master0_node" {
   }
 
   tags {
-    Name   = "heptio-master0"
-    vendor = "heptio"
+    "Name"                       = "heptio-master0"
+    "vendor"                     = "heptio"
+    "kubernetes.io/cluster/cl01" = "owned"
   }
 }
 
@@ -120,6 +209,8 @@ resource "aws_instance" "master_node" {
   vpc_security_group_ids = ["${aws_security_group.master_sg.id}"]
   key_name               = "${var.key_name}"
   ebs_optimized          = "true"
+  source_dest_check      = "false"
+  iam_instance_profile   = "${aws_iam_instance_profile.master_profile.name}"
 
   root_block_device {
     volume_type           = "gp2"
@@ -128,8 +219,9 @@ resource "aws_instance" "master_node" {
   }
 
   tags {
-    Name   = "heptio-master"
-    vendor = "heptio"
+    "Name"                       = "heptio-master"
+    "vendor"                     = "heptio"
+    "kubernetes.io/cluster/cl01" = "owned"
   }
 }
 
@@ -163,6 +255,10 @@ output "master0_ip" {
 
 output "master_ep" {
   value = "${aws_instance.master_node.*.private_dns}"
+}
+
+output "master_ip" {
+  value = "${aws_instance.master_node.*.private_ip}"
 }
 
 output "api_lb_ep" {

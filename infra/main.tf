@@ -12,3 +12,7 @@ provider "aws" {
     version = "1.14.1"
 }
 
+output "vpc_cidr" {
+  value = "${data.aws_vpc.existing.cidr_block}"
+}
+
