@@ -88,8 +88,10 @@ terraform init infra
 terraform apply -auto-approve infra
 
 # collect terraform output
-MASTER0=$(terraform output master0_ep)
 MASTER0_IP=$(terraform output master0_ip)
+MASTER1_IP=$(echo "$(terraform output master_ip)" | sed -n '1 p' | tr -d ,)
+MASTER2_IP=$(echo "$(terraform output master_ip)" | sed -n '2 p')
+MASTER0=$(terraform output master0_ep)
 MASTER1=$(echo "$(terraform output master_ep)" | sed -n '1 p' | tr -d ,)
 MASTER2=$(echo "$(terraform output master_ep)" | sed -n '2 p')
 API_LB_EP=$(terraform output api_lb_ep)
@@ -97,6 +99,7 @@ ETCD0=$(terraform output etcd0_ep)
 ETCDS=$(terraform output etcd_ep)
 ETCD0_IP=$(terraform output etcd0_ip)
 ETCD_IPS=$(terraform output etcd_ip)
+VPC_CIDR=$(terraform output vpc_cidr)
 
 # wait for infrastructure to spin up
 echo "pausing for 3 min to allow infrastructure to spin up..."
@@ -105,6 +108,23 @@ sleep 180
 if [ ! -d /tmp/kube-cluster ]; then
     mkdir /tmp/kube-cluster
 fi
+
+# distribute VPC CIDR
+echo "$VPC_CIDR" > /tmp/kube-cluster/vpc_cidr
+VPC_CIDR=$(cat /tmp/kube-cluster/vpc_cidr)
+trusted_send /tmp/kube-cluster/vpc_cidr $MASTER0 /tmp/vpc_cidr
+trusted_send /tmp/kube-cluster/vpc_cidr $MASTER1 /tmp/vpc_cidr
+trusted_send /tmp/kube-cluster/vpc_cidr $MASTER2 /tmp/vpc_cidr
+echo "VPC cidr block distributed"
+
+# distribute master IPs
+echo "$MASTER0_IP,$MASTER1_IP,$MASTER2_IP" > /tmp/kube-cluster/master_ips
+MASTER_IPS=$(cat /tmp/kube-cluster/master_ips)
+trusted_send /tmp/kube-cluster/master_ips $MASTER0 /tmp/master_ips
+trusted_send /tmp/kube-cluster/master_ips $MASTER1 /tmp/master_ips
+trusted_send /tmp/kube-cluster/master_ips $MASTER2 /tmp/master_ips
+echo "master IPs distributed to masters"
+
 
 # distribute proxy endpoint to masters
 echo "$PROXY_EP" > /tmp/kube-cluster/proxy_ep
@@ -186,8 +206,8 @@ trusted_send /tmp/kube-cluster/etcd2_ip $MASTER2 /tmp/etcd2_ip
 echo "etcd IP addresses distributed"
 
 # wait for master0 to initialize cluster
-echo "pausing for 8 min to allow master initialization..."
-sleep 480
+echo "pausing for 3 min to allow master initialization..."
+sleep 180
 
 # retreive K8s TLS assets
 trusted_fetch $HOST_OS@$MASTER0:/tmp/k8s_tls.tar.gz /tmp/kube-cluster/
@@ -218,6 +238,8 @@ cat > /tmp/kube-workers/worker-bootstrap.sh <<EOF
 echo "$PROXY_EP" | tee /tmp/proxy_ep
 echo "$IMAGE_REPO" | tee /tmp/image_repo
 echo "$JOIN_CMD" | tee /tmp/join
+echo "$MASTER_IPS" | tee /tmp/master_ips
+echo "$VPC_CIDR" | tee /tmp/vpc_cidr
 EOF
 echo "worker user data script generated"
 
