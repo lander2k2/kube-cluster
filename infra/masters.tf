@@ -72,7 +72,7 @@ resource "aws_iam_role_policy" "master_policy" {
       "Action" : [
         "s3:GetObject"
       ],
-      "Resource": "arn:aws:s3:::*",
+      "Resource": "arn:aws-cn:s3:::*",
       "Effect": "Allow"
     },
     {
