@@ -157,8 +157,9 @@ resource "aws_security_group" "worker_sg" {
   }
 
   tags {
-    Name = "heptio-worker"
-    vendor = "heptio"
+    "Name"    = "heptio-worker"
+    "vendor"  = "heptio"
+    "cluster" = "${var.cluster_name}"
   }
 }
 
@@ -207,8 +208,13 @@ resource "aws_autoscaling_group" "workers" {
       propagate_at_launch = true
     },
     {
-      key                 = "kubernetes.io/cluster/cl01"
+      key                 = "kubernetes.io/cluster/${var.cluster_name}"
       value               = "owned"
+      propagate_at_launch = true
+    },
+    {
+      key                 = "cluster"
+      value               = "${var.cluster_name}"
       propagate_at_launch = true
     }
   ]

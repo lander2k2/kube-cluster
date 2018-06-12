@@ -1,3 +1,6 @@
+// Arbitrary name for cluster; will be added to AWS tags
+cluster_name = ""
+
 // Add the key pair name from AWS here
 key_name = ""
 

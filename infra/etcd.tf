@@ -39,8 +39,9 @@ resource "aws_security_group" "etcd_sg" {
   }
 
   tags {
-    Name = "heptio-etcd"
-    vendor = "heptio"
+    "Name"    = "heptio-etcd"
+    "vendor"  = "heptio"
+    "cluster" = "${var.cluster_name}"
   }
 }
 
@@ -61,8 +62,9 @@ resource "aws_instance" "etcd0_node" {
   }
 
   tags {
-    Name   = "heptio-etcd0"
-    vendor = "heptio"
+    "Name"    = "heptio-etcd0"
+    "vendor"  = "heptio"
+    "cluster" = "${var.cluster_name}"
   }
 }
 
@@ -83,8 +85,9 @@ resource "aws_instance" "etcd_node" {
   }
 
   tags {
-    Name   = "heptio-etcd"
-    vendor = "heptio"
+    "Name"    = "heptio-etcd"
+    "vendor"  = "heptio"
+    "cluster" = "${var.cluster_name}"
   }
 }
 

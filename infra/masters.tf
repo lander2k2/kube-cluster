@@ -148,8 +148,9 @@ resource "aws_security_group" "master_sg" {
   }
 
   tags {
-    Name = "heptio-master"
-    vendor = "heptio"
+    "Name"    = "heptio-master"
+    "vendor"  = "heptio"
+    "cluster" = "${var.cluster_name}"
   }
 }
 
@@ -172,8 +173,9 @@ resource "aws_security_group" "master_lb_sg" {
   }
 
   tags {
-    Name = "heptio-k8s-api-lb"
-    vendor = "heptio"
+    "Name"    = "heptio-k8s-api-lb"
+    "vendor"  = "heptio"
+    "cluster" = "${var.cluster_name}"
   }
 }
 
@@ -195,9 +197,10 @@ resource "aws_instance" "master0_node" {
   }
 
   tags {
-    "Name"                       = "heptio-master0"
-    "vendor"                     = "heptio"
-    "kubernetes.io/cluster/cl01" = "owned"
+    "Name"                                      = "heptio-master0"
+    "vendor"                                    = "heptio"
+    "kubernetes.io/cluster/${var.cluster_name}" = "owned"
+    "cluster"                                   = "${var.cluster_name}"
   }
 }
 
@@ -219,9 +222,10 @@ resource "aws_instance" "master_node" {
   }
 
   tags {
-    "Name"                       = "heptio-master"
-    "vendor"                     = "heptio"
-    "kubernetes.io/cluster/cl01" = "owned"
+    "Name"                                      = "heptio-master"
+    "vendor"                                    = "heptio"
+    "kubernetes.io/cluster/${var.cluster_name}" = "owned"
+    "cluster"                                   = "${var.cluster_name}"
   }
 }
 
@@ -240,8 +244,9 @@ resource "aws_elb" "api_elb" {
   }
 
   tags {
-    Name = "heptio-k8s-api-lb"
-    vendor = "heptio"
+    "Name"    = "heptio-k8s-api-lb"
+    "vendor"  = "heptio"
+    "cluster" = "${var.cluster_name}"
   }
 }
 
