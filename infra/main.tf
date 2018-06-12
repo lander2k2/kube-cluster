@@ -1,4 +1,6 @@
-variable "cluster_name" {}
+variable "cluster_name" {
+  default = "kubernetes"
+}
 variable "key_name" {}
 variable "vpc_id" {}
 

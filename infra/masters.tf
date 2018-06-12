@@ -197,10 +197,10 @@ resource "aws_instance" "master0_node" {
   }
 
   tags {
-    "Name"                                      = "heptio-master0"
-    "vendor"                                    = "heptio"
-    "kubernetes.io/cluster/${var.cluster_name}" = "owned"
-    "cluster"                                   = "${var.cluster_name}"
+    "Name"                             = "heptio-master0"
+    "vendor"                           = "heptio"
+    "kubernetes.io/cluster/kubernetes" = "owned"
+    "cluster"                          = "${var.cluster_name}"
   }
 }
 
@@ -222,10 +222,10 @@ resource "aws_instance" "master_node" {
   }
 
   tags {
-    "Name"                                      = "heptio-master"
-    "vendor"                                    = "heptio"
-    "kubernetes.io/cluster/${var.cluster_name}" = "owned"
-    "cluster"                                   = "${var.cluster_name}"
+    "Name"                             = "heptio-master"
+    "vendor"                           = "heptio"
+    "kubernetes.io/cluster/kubernetes" = "owned"
+    "cluster"                          = "${var.cluster_name}"
   }
 }
 
