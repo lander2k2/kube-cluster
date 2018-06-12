@@ -187,50 +187,13 @@ resource "aws_launch_configuration" "worker" {
   }
 }
 
-#resource "aws_network_interface" "worker" {
-#  subnet_id         = "${var.primary_subnet}"
-#  security_groups   = ["${aws_security_group.worker_sg.id}"]
-#  source_dest_check = "false"
-#}
-#
-#resource "aws_launch_template" "worker" {
-#  name_prefix   = "heptio-worker"
-#  image_id      = "${var.worker_ami}"
-#  instance_type = "${var.worker_type}"
-#  key_name      = "${var.key_name}"
-#  user_data     = "${base64encode("${data.local_file.user_data.content}")}"
-#  #ebs_optimized = "true"
-#
-#  block_device_mappings {
-#    device_name = "/dev/sda1"
-#    ebs {
-#      volume_size           = "${var.worker_disk_size}"
-#      volume_type           = "gp2"
-#      delete_on_termination = true
-#    }
-#  }
-#
-#  iam_instance_profile {
-#    name = "${aws_iam_instance_profile.worker_profile.name}"
-#  }
-#
-#  network_interfaces {
-#    network_interface_id = "${aws_network_interface.worker.id}"
-#  }
-#}
-
 resource "aws_autoscaling_group" "workers" {
   name                 = "heptio-worker"
   vpc_zone_identifier  = ["${var.primary_subnet}", "${var.secondary_subnet}"]
-  #vpc_zone_identifier  = ["${var.primary_subnet}"]
   desired_capacity     = "${var.worker_count}"
   max_size             = "${var.worker_count + 1}"
   min_size             = "${var.worker_count}"
   launch_configuration = "${aws_launch_configuration.worker.name}"
-
-  #launch_template {
-  #  id = "${aws_launch_template.worker.id}"
-  #}
 
   tags = [
     {
