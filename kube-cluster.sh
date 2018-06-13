@@ -83,6 +83,15 @@ trusted_send() {
 
 set -e
 
+# userdata to set expected hostnames
+cat > /tmp/kube-workers/master-hostname.sh <<EOF
+#cloud-boothook
+#!/bin/bash
+echo "\$HOSTNAME.cn-north-1.compute.internal" > /etc/hostname
+hostname -F /etc/hostname
+EOF
+echo "master user data script generated"
+
 # provision the control plane
 terraform init infra
 terraform apply -auto-approve infra
@@ -227,15 +236,6 @@ echo "join command retreived"
 trusted_fetch $HOST_OS@$MASTER0:~/.kube/config ./kubeconfig
 sed -i -e "s/$MASTER0_IP/$API_LB_EP/g" ./kubeconfig
 echo "kubeconfig retrieved"
-
-# userdata to set expected hostnames
-cat > /tmp/kube-workers/master-hostname.sh <<EOF
-#cloud-boothook
-#!/bin/bash
-echo "\$HOSTNAME.cn-north-1.compute.internal" > /etc/hostname
-hostname -F /etc/hostname
-EOF
-echo "master user data script generated"
 
 # generate user data script for worker asg
 if [ ! -d /tmp/kube-workers ]; then
