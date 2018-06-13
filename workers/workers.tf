@@ -209,7 +209,7 @@ resource "aws_autoscaling_group" "workers" {
       propagate_at_launch = true
     },
     {
-      key                 = "kubernetes.io/cluster/${var.cluster_name}"
+      key                 = "kubernetes.io/cluster/kubernetes"
       value               = "owned"
       propagate_at_launch = true
     },
