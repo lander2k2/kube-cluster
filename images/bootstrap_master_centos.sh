@@ -212,13 +212,13 @@ apiServerCertSANs:
 - ${API_DNS}
 apiServerExtraArgs:
   endpoint-reconciler-type: "lease"
-  external-hostname: "${HOSTNAME}.cnqr-cn.com"
+  external-hostname: "${HOSTNAME}.cn-north-1.compute.internal"
 controllerManagerExtraArgs:
   configure-cloud-routes: "false"
 kubernetesVersion: "1.9.7"
 cloudProvider: "aws"
 imageRepository: $IMAGE_REPO
-nodeName: "${HOSTNAME}.cnqr-cn.com"
+nodeName: "${HOSTNAME}.cn-north-1.compute.internal"
 EOF
 
 # get the K8s TLS assets from master0

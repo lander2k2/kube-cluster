@@ -210,13 +210,13 @@ apiServerCertSANs:
 - ${API_DNS}
 apiServerExtraArgs:
   endpoint-reconciler-type: "lease"
-  external-hostname: "${HOSTNAME}.cnqr-cn.com"
+  external-hostname: "${HOSTNAME}.cn-north-1.compute.internal"
 controllerManagerExtraArgs:
   configure-cloud-routes: "false"
 kubernetesVersion: "1.9.7"
 cloudProvider: "aws"
 imageRepository: $IMAGE_REPO
-nodeName: "${HOSTNAME}.cnqr-cn.com"
+nodeName: "${HOSTNAME}.cn-north-1.compute.internal"
 EOF
 
 # initialize
@@ -229,9 +229,9 @@ HTTP_PROXY="http://$PROXY_EP:3128" \
 sudo tar cvf /tmp/k8s_tls.tar.gz /etc/kubernetes/pki
 
 # put the kubeconfig in a convenient location
-mkdir -p /home/centos/.kube
-sudo cp -i /etc/kubernetes/admin.conf /home/centos/.kube/config
-sudo chown -R centos:centos /home/centos/.kube
+mkdir -p /home/ec2-user/.kube
+sudo cp -i /etc/kubernetes/admin.conf /home/ec2-user/.kube/config
+sudo chown -R ec2-user:ec2-user /home/ec2-user/.kube
 
 # deploy networking
 sudo kubectl --kubeconfig /etc/kubernetes/admin.conf apply -f /etc/k8s_bootstrap/calico-rbac-kdd.yaml
@@ -239,7 +239,7 @@ sudo kubectl --kubeconfig /etc/kubernetes/admin.conf apply -f /etc/k8s_bootstrap
 
 # get a join command ready for distribution to workers
 sudo kubeadm token create --description "Token created and used by kube-cluster bootstrapper" --print-join-command > /tmp/join
-sudo chown centos:centos /tmp/join
+sudo chown ec2-user:ec2-user /tmp/join
 
 # clean
 while [ $INSTALL_COMPLETE -eq 0 ]; do
