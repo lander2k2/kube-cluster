@@ -173,17 +173,12 @@ resource "aws_security_group" "master_lb_sg" {
   }
 }
 
-data "local_file" "master_user_data" {
-  filename = "/tmp/kube-workers/master-hostname.sh"
-}
-
 resource "aws_instance" "master0_node" {
   count                  = 1
   ami                    = "${var.master0_ami}"
   instance_type          = "${var.master_type}"
   subnet_id              = "${var.primary_subnet}"
   vpc_security_group_ids = ["${aws_security_group.master_sg.id}"]
-  user_data              = "${data.local_file.master_user_data.content}"
   key_name               = "${var.key_name}"
   ebs_optimized          = "true"
   iam_instance_profile   = "${aws_iam_instance_profile.master_profile.name}"
@@ -209,7 +204,6 @@ resource "aws_instance" "master_node" {
   instance_type          = "${var.master_type}"
   subnet_id              = "${var.primary_subnet}"
   vpc_security_group_ids = ["${aws_security_group.master_sg.id}"]
-  user_data              = "${data.local_file.master_user_data.content}"
   key_name               = "${var.key_name}"
   ebs_optimized          = "true"
   source_dest_check      = "false"
