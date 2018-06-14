@@ -51,15 +51,7 @@ There are five distinct roles:
     $ cp terraform.tfvars.example terraform.tfvars
 ```
 
-4. Open `terraform.tfvars` and add or edit the infor for:
-
-    * key pair
-    * VPC ID
-    * subnet IDs
-    * desired instance types
-    * initial worker count
-
-    We'll add the AMIs after the images are built.
+4. Open `terraform.tfvars` and add or edit the various values.  Don't worry about the AMI values just yet.  We will add those after the images are built.
 
 5. Build your 5 machine images.  Note the AMI IDs as you build them and add to `terraform.tfvars`.
 ```
@@ -74,7 +66,7 @@ There are five distinct roles:
 6. Deploy the control plane.  This will stand up an etcd cluster and 3 master nodes.
 ```
     $ cd ../
-    $ ./kube-cluster.sh centos [/path/to/private/key] [proxy_endpoint] [image_repo]
+    $ ./kube-cluster.sh centos [/path/to/private/key] [proxy_endpoint] [image_repo] [api_dns]
 ```
 
 7. Check the control plane is ready.  A kubeconfig file will have been pulled down so you can use `kubectl` to check the cluster.  You should get ouput similar to below.
