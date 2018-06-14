@@ -108,6 +108,7 @@ done
 cat > /etc/systemd/system/kubelet.service.d/10-kubeadm.conf <<EOF
 [Service]
 Environment="HTTP_PROXY=http://$PROXY_EP:3128/" "HTTPS_PROXY=http://$PROXY_EP:3128/" "NO_PROXY=docker-pek.cnqr-cn.com,$HOSTNAME,localhost,.default.svc.cluster.local,.svc.cluster.local,.cluster.local,.cn-north-1.compute.internal,127.0.0.1,169.254.169.254,192.168.0.0/16,10.96.0.0/12,$VPC_CIDR"
+Environment="KUBELET_NODE_ROLE=--node-labels=node-role.kubernetes.io/master="
 Environment="KUBELET_INFRA_IMAGE=--pod-infra-container-image=${IMAGE_REPO}/pause-amd64:3.0"
 Environment="KUBELET_CGROUPS=--cgroup-driver=systemd --runtime-cgroups=/systemd/system.slice --kubelet-cgroups=/systemd/system.slice"
 Environment="KUBELET_CLOUD_PROVIDER=--cloud-provider=aws"
@@ -119,7 +120,7 @@ Environment="KUBELET_AUTHZ_ARGS=--authorization-mode=Webhook --client-ca-file=/e
 Environment="KUBELET_CADVISOR_ARGS=--cadvisor-port=0"
 Environment="KUBELET_CERTIFICATE_ARGS=--rotate-certificates=true --cert-dir=/var/lib/kubelet/pki"
 ExecStart=
-ExecStart=/usr/bin/kubelet \$KUBELET_INFRA_IMAGE \$KUBELET_CGROUPS \$KUBELET_CLOUD_PROVIDER \$KUBELET_KUBECONFIG_ARGS \$KUBELET_SYSTEM_PODS_ARGS \$KUBELET_NETWORK_ARGS \$KUBELET_DNS_ARGS \$KUBELET_AUTHZ_ARGS \$KUBELET_CADVISOR_ARGS \$KUBELET_CERTIFICATE_ARGS \$KUBELET_EXTRA_ARGS
+ExecStart=/usr/bin/kubelet \$KUBELET_NODE_ROLE \$KUBELET_INFRA_IMAGE \$KUBELET_CGROUPS \$KUBELET_CLOUD_PROVIDER \$KUBELET_KUBECONFIG_ARGS \$KUBELET_SYSTEM_PODS_ARGS \$KUBELET_NETWORK_ARGS \$KUBELET_DNS_ARGS \$KUBELET_AUTHZ_ARGS \$KUBELET_CADVISOR_ARGS \$KUBELET_CERTIFICATE_ARGS \$KUBELET_EXTRA_ARGS
 EOF
 
 sudo systemctl daemon-reload
