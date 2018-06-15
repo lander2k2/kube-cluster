@@ -28,7 +28,7 @@ resource "aws_security_group" "etcd_sg" {
     from_port   = 22
     to_port     = 22
     protocol    = "TCP"
-    cidr_blocks = ["${data.aws_vpc.existing.cidr_block}"]
+    cidr_blocks = ["0.0.0.0/0"]
   }
 
   egress {
@@ -52,14 +52,15 @@ resource "aws_instance" "etcd0_node" {
   subnet_id              = "${var.primary_subnet}"
   vpc_security_group_ids = ["${aws_security_group.etcd_sg.id}"]
   key_name               = "${var.key_name}"
-  ebs_optimized          = "true"
+  #ebs_optimized          = "true"
+  associate_public_ip_address = "true"
 
-  root_block_device {
-    volume_type           = "io1"
-    volume_size           = "${var.etcd_disk_size}"
-    iops                  = 5000
-    delete_on_termination = false
-  }
+  #root_block_device {
+  #  volume_type           = "io1"
+  #  volume_size           = "${var.etcd_disk_size}"
+  #  iops                  = 5000
+  #  delete_on_termination = false
+  #}
 
   tags {
     "Name"    = "heptio-etcd0"
@@ -75,14 +76,15 @@ resource "aws_instance" "etcd_node" {
   subnet_id              = "${var.primary_subnet}"
   vpc_security_group_ids = ["${aws_security_group.etcd_sg.id}"]
   key_name               = "${var.key_name}"
-  ebs_optimized          = "true"
+  #ebs_optimized          = "true"
+  associate_public_ip_address = "true"
 
-  root_block_device {
-    volume_type           = "io1"
-    volume_size           = "${var.etcd_disk_size}"
-    iops                  = 5000
-    delete_on_termination = false
-  }
+  #root_block_device {
+  #  volume_type           = "io1"
+  #  volume_size           = "${var.etcd_disk_size}"
+  #  iops                  = 5000
+  #  delete_on_termination = false
+  #}
 
   tags {
     "Name"    = "heptio-etcd"
@@ -92,14 +94,16 @@ resource "aws_instance" "etcd_node" {
 }
 
 output "etcd0_ep" {
-  value = "${aws_instance.etcd0_node.private_dns}"
+  #value = "${aws_instance.etcd0_node.private_dns}"
+  value = "${aws_instance.etcd0_node.public_dns}"
 }
 output "etcd0_ip" {
   value = "${aws_instance.etcd0_node.private_ip}"
 }
 
 output "etcd_ep" {
-  value = "${aws_instance.etcd_node.*.private_dns}"
+  #value = "${aws_instance.etcd_node.*.private_dns}"
+  value = "${aws_instance.etcd_node.*.public_dns}"
 }
 output "etcd_ip" {
   value = "${aws_instance.etcd_node.*.private_ip}"

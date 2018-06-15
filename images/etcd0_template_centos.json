@@ -1,7 +1,7 @@
 {
     "variables": {
-        "source_ami_id": "",
-        "aws_region": "cn-north-1"
+        "source_ami_id": "ami-e1496384",
+        "aws_region": "us-east-2"
     },
     "builders": [
         {
@@ -9,10 +9,7 @@
             "ami_name": "heptio-k8s-etcd0-centos-{{timestamp}}",
             "instance_type": "t2.micro",
             "source_ami": "{{user `source_ami_id`}}",
-            "ssh_username": "centos",
-            "security_group_id": "sg-6e39c609",
-            "ssh_keypair_name": "tectonic-installer",
-            "ssh_private_key_file": "tectonic-installer.pem"
+            "ssh_username": "centos"
         }
     ],
     "provisioners": [

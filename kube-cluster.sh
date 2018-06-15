@@ -62,9 +62,9 @@ trusted_send() {
     REMOTE_HOST=$2
     REMOTE_PATH=$3
     scp -i $KEY_PATH -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
-        $LOCAL_FILE ec2-user@$REMOTE_HOST:/tmp/tempfile
+        $LOCAL_FILE centos@$REMOTE_HOST:/tmp/tempfile
     ssh -i $KEY_PATH -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
-        ec2-user@$REMOTE_HOST "mv /tmp/tempfile $REMOTE_PATH"
+        centos@$REMOTE_HOST "mv /tmp/tempfile $REMOTE_PATH"
 }
 
 set -e
@@ -141,7 +141,7 @@ trusted_send /tmp/kube-cluster/api_lb_ep $MASTER2 /tmp/api_lb_ep
 echo "k8s api endpoint distributed to master nodes"
 
 # retrieve etcd TLS
-trusted_fetch ec2-user@$ETCD0:/tmp/etcd_tls.tar.gz /tmp/kube-cluster/
+trusted_fetch centos@$ETCD0:/tmp/etcd_tls.tar.gz /tmp/kube-cluster/
 echo "etcd TLS assets retrieved"
 
 # distribute etcd TLS
@@ -154,10 +154,10 @@ trusted_send /tmp/kube-cluster/etcd_tls.tar.gz $MASTER2 /tmp/etcd_tls.tar.gz
 echo "etcd TLS assets distributed"
 
 # collect etcd members for the --initial-cluster flag on etcd
-trusted_fetch ec2-user@$ETCD0:/tmp/etcd_member /tmp/kube-cluster/init_cluster
+trusted_fetch centos@$ETCD0:/tmp/etcd_member /tmp/kube-cluster/init_cluster
 INIT_MEMBERS=$(cat /tmp/kube-cluster/init_cluster)
 for ETCD in $ETCDS; do
-    trusted_fetch ec2-user@$(echo $ETCD | tr -d ,):/tmp/etcd_member /tmp/kube-cluster/etcd_member
+    trusted_fetch centos@$(echo $ETCD | tr -d ,):/tmp/etcd_member /tmp/kube-cluster/etcd_member
     INIT_MEMBERS="${INIT_MEMBERS},$(cat /tmp/kube-cluster/etcd_member)"
 done
 echo $INIT_MEMBERS > /tmp/kube-cluster/init_cluster
@@ -196,7 +196,7 @@ echo "pausing for 3 min to allow master initialization..."
 sleep 180
 
 # retreive K8s TLS assets
-trusted_fetch ec2-user@$MASTER0:/tmp/k8s_tls.tar.gz /tmp/kube-cluster/
+trusted_fetch centos@$MASTER0:/tmp/k8s_tls.tar.gz /tmp/kube-cluster/
 echo "k8s TLS assets retrieved"
 
 # distribute K8s TLS assets
@@ -205,12 +205,12 @@ trusted_send /tmp/kube-cluster/k8s_tls.tar.gz $MASTER2 /tmp/k8s_tls.tar.gz
 echo "k8s TLS assets distributed"
 
 # retreive kubeadm join command
-trusted_fetch ec2-user@$MASTER0:/tmp/join /tmp/kube-cluster/join
+trusted_fetch centos@$MASTER0:/tmp/join /tmp/kube-cluster/join
 JOIN_CMD=$(cat /tmp/kube-cluster/join)
 echo "join command retreived"
 
 # grab the kubeconfig to use locally
-trusted_fetch ec2-user@$MASTER0:~/.kube/config ./kubeconfig
+trusted_fetch centos@$MASTER0:~/.kube/config ./kubeconfig
 sed -i -e "s/$MASTER0_IP/$API_LB_EP/g" ./kubeconfig
 echo "kubeconfig retrieved"
 

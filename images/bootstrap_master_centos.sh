@@ -107,7 +107,7 @@ done
 # change pause image repo
 cat > /etc/systemd/system/kubelet.service.d/10-kubeadm.conf <<EOF
 [Service]
-Environment="HTTP_PROXY=http://$PROXY_EP:3128/" "HTTPS_PROXY=http://$PROXY_EP:3128/" "NO_PROXY=docker-pek.cnqr-cn.com,$HOSTNAME,localhost,.default.svc.cluster.local,.svc.cluster.local,.cluster.local,.cn-north-1.compute.internal,127.0.0.1,169.254.169.254,192.168.0.0/16,10.96.0.0/12,$VPC_CIDR"
+Environment="HTTP_PROXY=http://$PROXY_EP:3128/" "HTTPS_PROXY=http://$PROXY_EP:3128/" "NO_PROXY=docker-pek.cnqr-cn.com,$HOSTNAME,localhost,.default.svc.cluster.local,.svc.cluster.local,.cluster.local,.us-east-2.compute.internal,127.0.0.1,169.254.169.254,192.168.0.0/16,10.96.0.0/12,$VPC_CIDR"
 Environment="KUBELET_NODE_ROLE=--node-labels=node-role.kubernetes.io/master="
 Environment="KUBELET_INFRA_IMAGE=--pod-infra-container-image=${IMAGE_REPO}/pause-amd64:3.0"
 Environment="KUBELET_CGROUPS=--cgroup-driver=systemd --runtime-cgroups=/systemd/system.slice --kubelet-cgroups=/systemd/system.slice"
@@ -198,6 +198,7 @@ apiVersion: kubeadm.k8s.io/v1alpha1
 kind: MasterConfiguration
 api:
   advertiseAddress: ${PRIVATE_IP}
+  controlPlaneEndpoint: ${API_LB_EP}
 etcd:
   endpoints:
   - https://${ETCD0_IP}:2379
@@ -213,13 +214,13 @@ apiServerCertSANs:
 - ${API_DNS}
 apiServerExtraArgs:
   endpoint-reconciler-type: "lease"
-  external-hostname: "${HOSTNAME}.cn-north-1.compute.internal"
+  external-hostname: "${HOSTNAME}"
 controllerManagerExtraArgs:
   configure-cloud-routes: "false"
 kubernetesVersion: "1.9.7"
 cloudProvider: "aws"
 imageRepository: $IMAGE_REPO
-nodeName: "${HOSTNAME}.cn-north-1.compute.internal"
+nodeName: "${HOSTNAME}"
 EOF
 
 # get the K8s TLS assets from master0

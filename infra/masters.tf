@@ -17,7 +17,7 @@ resource "aws_iam_role" "master_role" {
         {
             "Action": "sts:AssumeRole",
             "Principal": {
-                "Service": "ec2.amazonaws.com.cn"
+                "Service": "ec2.amazonaws.com"
             },
             "Effect": "Allow",
             "Sid": ""
@@ -53,7 +53,7 @@ resource "aws_iam_role_policy" "master_policy" {
       "Action" : [
         "s3:GetObject"
       ],
-      "Resource": "arn:aws-cn:s3:::*",
+      "Resource": "arn:aws:s3:::*",
       "Effect": "Allow"
     },
     {
@@ -119,7 +119,8 @@ resource "aws_security_group" "master_sg" {
     from_port   = 22
     to_port     = 22
     protocol    = "TCP"
-    cidr_blocks = ["${data.aws_vpc.existing.cidr_block}"]
+    #cidr_blocks = ["${data.aws_vpc.existing.cidr_block}"]
+    cidr_blocks = ["0.0.0.0/0"]
   }
   ingress {
     from_port   = 179
@@ -156,7 +157,8 @@ resource "aws_security_group" "master_lb_sg" {
     from_port   = 6443
     to_port     = 6443
     protocol    = "TCP"
-    cidr_blocks = ["${data.aws_vpc.existing.cidr_block}"]
+    #cidr_blocks = ["${data.aws_vpc.existing.cidr_block}"]
+    cidr_blocks = ["0.0.0.0/0"]
   }
 
   egress {
@@ -180,9 +182,10 @@ resource "aws_instance" "master0_node" {
   subnet_id              = "${var.primary_subnet}"
   vpc_security_group_ids = ["${aws_security_group.master_sg.id}"]
   key_name               = "${var.key_name}"
-  ebs_optimized          = "true"
+  #ebs_optimized          = "true"
   iam_instance_profile   = "${aws_iam_instance_profile.master_profile.name}"
   source_dest_check      = "false"
+  associate_public_ip_address = "true"
 
   root_block_device {
     volume_type           = "gp2"
@@ -205,9 +208,10 @@ resource "aws_instance" "master_node" {
   subnet_id              = "${var.primary_subnet}"
   vpc_security_group_ids = ["${aws_security_group.master_sg.id}"]
   key_name               = "${var.key_name}"
-  ebs_optimized          = "true"
+  #ebs_optimized          = "true"
   source_dest_check      = "false"
   iam_instance_profile   = "${aws_iam_instance_profile.master_profile.name}"
+  associate_public_ip_address = "true"
 
   root_block_device {
     volume_type           = "gp2"
@@ -224,10 +228,11 @@ resource "aws_instance" "master_node" {
 }
 
 resource "aws_elb" "api_elb" {
-  subnets         = ["${var.primary_subnet}"]
-  internal        = "true"
-  instances       = ["${aws_instance.master0_node.id}", "${aws_instance.master_node.*.id}"]
-  security_groups = ["${aws_security_group.master_lb_sg.id}"]
+  subnets                   = ["${var.primary_subnet}"]
+  #internal                  = "true"
+  internal                  = "false"
+  instances                 = ["${aws_instance.master0_node.id}", "${aws_instance.master_node.*.id}"]
+  security_groups           = ["${aws_security_group.master_lb_sg.id}"]
 
   listener {
     instance_port     = 6443
@@ -244,7 +249,8 @@ resource "aws_elb" "api_elb" {
 }
 
 output "master0_ep" {
-  value = "${aws_instance.master0_node.private_dns}"
+  #value = "${aws_instance.master0_node.private_dns}"
+  value = "${aws_instance.master0_node.public_dns}"
 }
 
 output "master0_ip" {
@@ -252,7 +258,8 @@ output "master0_ip" {
 }
 
 output "master_ep" {
-  value = "${aws_instance.master_node.*.private_dns}"
+  #value = "${aws_instance.master_node.*.private_dns}"
+  value = "${aws_instance.master_node.*.public_dns}"
 }
 
 output "master_ip" {

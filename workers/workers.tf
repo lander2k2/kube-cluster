@@ -35,7 +35,7 @@ resource "aws_iam_role" "worker_role" {
         {
             "Action": "sts:AssumeRole",
             "Principal": {
-                "Service": "ec2.amazonaws.com.cn"
+                "Service": "ec2.amazonaws.com"
             },
             "Effect": "Allow",
             "Sid": ""
@@ -71,7 +71,7 @@ resource "aws_iam_role_policy" "worker_policy" {
       "Action" : [
         "s3:GetObject"
       ],
-      "Resource": "arn:aws-cn:s3:::*",
+      "Resource": "arn:aws:s3:::*",
       "Effect": "Allow"
     },
     {
@@ -131,7 +131,8 @@ resource "aws_security_group" "worker_sg" {
     from_port   = 22
     to_port     = 22
     protocol    = "TCP"
-    cidr_blocks = ["${data.aws_vpc.existing.cidr_block}"]
+    #cidr_blocks = ["${data.aws_vpc.existing.cidr_block}"]
+    cidr_blocks = ["0.0.0.0/0"]
   }
   ingress {
     from_port   = 179
@@ -171,8 +172,9 @@ resource "aws_launch_configuration" "worker" {
   key_name             = "${var.key_name}"
   security_groups      = ["${aws_security_group.worker_sg.id}"]
   user_data            = "${data.local_file.user_data.content}"
-  ebs_optimized        = "true"
+  #ebs_optimized        = "true"
   iam_instance_profile = "${aws_iam_instance_profile.worker_profile.name}"
+  associate_public_ip_address = "true"
 
   root_block_device {
     volume_type           = "gp2"
