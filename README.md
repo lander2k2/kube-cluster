@@ -109,3 +109,23 @@ Change the terraform configs to add/remove/change the AWS infrastructure that yo
 ### kube-cluster script
 This script coordinates the bootstrapping process by moving files between nodes.  Alter this script if you have to coordinate other operations between nodes.
 
+## Kubernetes Version
+
+The kubernetes binaries are not installed by pulling from the official package repo since that repo is not reachable from China.  Rather, they are installed as such:
+
+1. Pull the node binaries from github.  A link can be found in the change logs in the kubernetes/kubernetes repo.  For example, if you want the node binaries for version 1.9.8, you can download it here: https://github.com/kubernetes/kubernetes/blob/master/CHANGELOG-1.9.md#node-binaries
+
+2. Put the tarball `kubernetes-node-linux-amd64.tar.gz` into the images directory when doinng a packer build of the node machine images.
+
+Therefore changing the Kubernetes version used is done by:
+
+1. Download the desired version tarball and using that to build the node's machine images.
+
+2. Edit `images/bootstrap_master0_centos.sh` (line 217) and `images/bootstrap_master_centos.sh` (line 219) and change the kubernetes version in the kubeadm-config.
+
+## Etcd Version
+
+In order to change the version of etcd installed, set the `ETCD_VERSION` env variable at the top of the `images/install_etcd_centos.sh` file.
+
+Refer to the External Dependencies section of the Kubernetes change log for the version of etcd to use with each Kubernetes version.  For example, the version of etcd to use with K8s 1.9 can be found here: https://github.com/kubernetes/kubernetes/blob/master/CHANGELOG-1.9.md#external-dependencies
+
