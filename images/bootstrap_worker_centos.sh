@@ -140,6 +140,18 @@ while [ $JOINED -eq 0 ]; do
     fi
 done
 
+KUBELET_CONF=0
+while [ $KUBELET_CONF -eq 0 ]; do
+    if [ -f /etc/kubernetes/kubelet.conf ]; then
+        sudo sed -i -e "s/https:\/\/.*/https:\/\/$API_LB_EP:6443/g" /etc/kubernetes/kubelet.conf
+        KUBELET_CONF=1
+    else
+        echo "kubelet kubeconfig not yet available"
+        sleep 5
+    fi
+done
+sudo systemctl restart kubelet
+
 # clean
 sudo rm -rf /tmp/image_repo \
     /tmp/join \
