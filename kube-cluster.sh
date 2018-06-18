@@ -226,7 +226,7 @@ echo "$IMAGE_REPO" | tee /tmp/image_repo
 echo "$JOIN_CMD" | tee /tmp/join
 echo "$MASTER_IPS" | tee /tmp/master_ips
 echo "$VPC_CIDR" | tee /tmp/vpc_cidr
-echo "$API_LB_EP" | tee/tmp/api_lb_ep
+echo "$API_LB_EP" | tee /tmp/api_lb_ep
 EOF
 echo "worker user data script generated"
 
