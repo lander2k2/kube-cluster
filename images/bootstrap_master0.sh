@@ -3,12 +3,13 @@
 PRIVATE_IP=$(ip addr show eth0 | grep -Po 'inet \K[\d.]+')
 PEER_NAME=$(hostname)
 API_LB_EP=0
-INIT_CLUSTER=0
-ETCD1_IP=0
-ETCD2_IP=0
 
-echo "${PEER_NAME}=https://${PRIVATE_IP}:2380" > /tmp/etcd_member
+#echo "${PEER_NAME}=https://${PRIVATE_IP}:2380" > /tmp/etcd_member
 echo "${PRIVATE_IP}" > /tmp/private_ip
+
+################################################################################
+# etcd
+################################################################################
 
 sudo mkdir -p /etc/kubernetes/pki/etcd
 sudo cat > /etc/kubernetes/pki/etcd/ca-config.json <<EOF
@@ -105,15 +106,6 @@ PEER_NAME=$PEER_NAME
 PRIVATE_IP=$PRIVATE_IP
 END
 
-while [ $INIT_CLUSTER -eq 0 ]; do
-    if [ -f /tmp/init_cluster ]; then
-        INIT_CLUSTER=$(cat /tmp/init_cluster)
-    else
-        echo "initial cluster values not yet available"
-        sleep 10
-    fi
-done
-
 sudo tee /etc/systemd/system/etcd.service << END
 [Unit]
 Description=etcd
@@ -143,7 +135,7 @@ ExecStart=/usr/local/bin/etcd --name ${PEER_NAME} \
     --peer-key-file=/etc/kubernetes/pki/etcd/peer-key.pem \
     --peer-client-cert-auth \
     --peer-trusted-ca-file=/etc/kubernetes/pki/etcd/ca.pem \
-    --initial-cluster ${INIT_CLUSTER} \
+    --initial-cluster "${PEER_NAME}=https://${PRIVATE_IP}:2380" \
     --initial-cluster-token my-etcd-token \
     --initial-cluster-state new
 
@@ -155,29 +147,48 @@ sudo systemctl daemon-reload
 sudo systemctl enable etcd
 sudo systemctl start etcd
 
+################################################################################
+# cluster-api
+################################################################################
+
+mkdir -p /etc/kubernetes/pki/cluster-api
+cat << EOF > /etc/kubernetes/pki/cluster-api/cluster-api.json
+{
+    "hosts": [
+        "cluster-api.svc.cluster.local",
+        "cluster-api.svc"
+    ],
+    "cn": "cluster-api.cluster-api.svc",
+    "key": {
+        "algo": "rsa",
+        "size": 2048
+    },
+    "names": [
+        {
+            "C":  "US",
+            "L":  "Seattle",
+            "O":  "Heptio, Inc.",
+            "OU": "Dev",
+            "ST": "Washington"
+        }
+    ]
+}
+EOF
+
+cd /etc/kubernetes/pki/cluster-api
+cfssl genkey cluster-api.json | cfssljson -bare cluster-api
+cfssl sign -ca ../front-proxy-ca.crt -ca-key ../front-proxy-ca.key -csr cluster-api.csr | cfssljson -bare cluster-api
+cd -
+
+################################################################################
+# kubernetes
+################################################################################
+
 while [ $API_LB_EP -eq 0 ]; do
     if [ -f /tmp/api_lb_ep ]; then
         API_LB_EP=$(cat /tmp/api_lb_ep)
     else
         echo "API load balancer endpoint not yet available"
-        sleep 10
-    fi
-done
-
-while [ $ETCD1_IP -eq 0 ]; do
-    if [ -f /tmp/etcd1_ip ]; then
-        ETCD1_IP=$(cat /tmp/etcd1_ip)
-    else
-        echo "etcd1 IP not yet available"
-        sleep 10
-    fi
-done
-
-while [ $ETCD2_IP -eq 0 ]; do
-    if [ -f /tmp/etcd2_ip ]; then
-        ETCD2_IP=$(cat /tmp/etcd2_ip)
-    else
-        echo "etcd2 IP not yet available"
         sleep 10
     fi
 done
@@ -190,8 +201,6 @@ api:
 etcd:
   endpoints:
   - https://${PRIVATE_IP}:2379
-  - https://${ETCD1_IP}:2379
-  - https://${ETCD2_IP}:2379
   caFile: /etc/kubernetes/pki/etcd/ca.pem
   certFile: /etc/kubernetes/pki/etcd/client.pem
   keyFile: /etc/kubernetes/pki/etcd/client-key.pem
@@ -200,7 +209,15 @@ networking:
 apiServerCertSANs:
 - ${API_LB_EP}
 apiServerExtraArgs:
-  endpoint-reconciler-type: "lease"
+  "endpoint-reconciler-type": "lease"
+  "requestheader-client-ca-file": "/etc/kubernetes/pki/front-proxy-ca.crt"
+  "proxy-client-cert-file": "/etc/kubernetes/pki/cluster-api/cluster-api.pem"
+  "proxy-client-key-file": "/etc/kubernetes/pki/cluster-api/cluster-api-key.pem"
+  "requestheader-allowed-names": "cluster-api.cluster-api.svc"
+  "requestheader-extra-headers-prefix": "X-Remote-Extra-"
+  "requestheader-group-headers": "X-Remote-Group"
+  "requestheader-username-headers": "X-Remote-User"
+  "enable-aggregator-routing": "true"
 EOF
 
 sudo kubeadm init --config=/tmp/kubeadm-config.yaml
