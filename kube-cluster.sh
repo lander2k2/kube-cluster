@@ -3,14 +3,11 @@
 USAGE=$(cat << END
 Install the control plane for a Kubnernetes cluster using packer, terraform and kubeadm
 
-Usage: ./kube-cluster.sh [-h] </path/to/private/key> <proxy_endpoint> <image_repo> <api_dns>
+Usage: ./kube-cluster.sh [-h] </path/to/private/key> <image_repo> <api_dns>
 
 Required Arguments:
 /path/to/private/key - the local filepath to the ssh private key of the
 named AWS key pair identified in the terraform.tfvars
-
-proxy_endpoint - the endpoint for the HTTP proxy that will provide
-access to the public internet for the cluster
 
 image_repo - the image reposistory to pull images from when installing
 cluster, e.g. quay.io/my_repo
@@ -27,23 +24,18 @@ elif [ "$1" = "" ]; then
     echo "$USAGE"
     exit 1
 elif [ "$2" = "" ]; then
-    echo "Error: missing proxy argument"
-    echo "$USAGE"
-    exit 1
-elif [ "$3" = "" ]; then
     echo "Error: missing image repo argument"
     echo "$USAGE"
     exit 1
-elif [ "$4" = "" ]; then
-    echo "Error: missing api dns argument"
-    echo "$USAGE"
-    exit 1
+# elif [ "$3" = "" ]; then
+#     echo "Error: missing api dns argument"
+#     echo "$USAGE"
+#     exit 1
 fi
 
 KEY_PATH=$1
-PROXY_EP=$2
-IMAGE_REPO=$3
-API_DNS=$4
+IMAGE_REPO=$2
+API_DNS=$3
 
 if [ ! -f $KEY_PATH ]; then
     echo "Error: no file found at $KEY_PATH"
@@ -110,14 +102,6 @@ trusted_send /tmp/kube-cluster/master_ips $MASTER0 /tmp/master_ips
 trusted_send /tmp/kube-cluster/master_ips $MASTER1 /tmp/master_ips
 trusted_send /tmp/kube-cluster/master_ips $MASTER2 /tmp/master_ips
 echo "master IPs distributed to masters"
-
-
-# distribute proxy endpoint to masters
-echo "$PROXY_EP" > /tmp/kube-cluster/proxy_ep
-trusted_send /tmp/kube-cluster/proxy_ep $MASTER0 /tmp/proxy_ep
-trusted_send /tmp/kube-cluster/proxy_ep $MASTER1 /tmp/proxy_ep
-trusted_send /tmp/kube-cluster/proxy_ep $MASTER2 /tmp/proxy_ep
-echo "proxy endpoint sent to masters"
 
 # distribute image repo to masters
 echo "$IMAGE_REPO" > /tmp/kube-cluster/image_repo
@@ -221,7 +205,6 @@ fi
 cat > /tmp/kube-workers/worker-bootstrap.sh <<EOF
 #cloud-boothook
 #!/bin/bash
-echo "$PROXY_EP" | tee /tmp/proxy_ep
 echo "$IMAGE_REPO" | tee /tmp/image_repo
 echo "$JOIN_CMD" | tee /tmp/join
 echo "$MASTER_IPS" | tee /tmp/master_ips

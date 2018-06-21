@@ -13,7 +13,7 @@ PRIVATE_IP=""
 while [ "$PRIVATE_IP" == "" ]; do
     echo "private IP not yet available"
     sleep 10
-    PRIVATE_IP=$(ip addr show eth0 | grep -Po 'inet \K[\d.]+')
+    PRIVATE_IP=$(ip addr show ens3 | grep -Po 'inet \K[\d.]+')
 done
 
 # shut up broken DNS warnings
@@ -30,7 +30,6 @@ ETCD_TLS=0
 ETCD0_IP=0
 ETCD1_IP=0
 ETCD2_IP=0
-PROXY_EP=0
 MASTER_IPS=0
 VPC_CIDR=0
 IMAGE_REPO=0
@@ -53,16 +52,6 @@ sudo iptables -t mangle -F
 sudo iptables -F
 sudo iptables -X
 
-# proxy vars for docker
-while [ $PROXY_EP -eq 0 ]; do
-    if [ -f /tmp/proxy_ep ]; then
-        PROXY_EP=$(cat /tmp/proxy_ep)
-    else
-        echo "proxy endpoint not yet available"
-        sleep 10
-    fi
-done
-
 # master node IP addresses
 while [ $MASTER_IPS -eq 0 ]; do
     if [ -f /tmp/master_ips ]; then
@@ -82,12 +71,6 @@ while [ $VPC_CIDR -eq 0 ]; do
         sleep 10
     fi
 done
-
-sudo mkdir -p /etc/systemd/system/docker.service.d
-sudo cat > /etc/systemd/system/docker.service.d/http-proxy.conf <<EOF
-[Service]
-Environment="HTTP_PROXY=http://$PROXY_EP:3128/" "HTTPS_PROXY=http://$PROXY_EP:3128/" "NO_PROXY=docker-pek.cnqr-cn.com,$HOSTNAME,localhost,$MASTER_IPS,127.0.0.1,169.254.169.254,192.168.0.0/16,$VPC_CIDR"
-EOF
 
 sudo systemctl daemon-reload
 sudo systemctl restart docker
@@ -115,7 +98,6 @@ done
 # change pause image repo
 cat > /etc/systemd/system/kubelet.service.d/10-kubeadm.conf <<EOF
 [Service]
-Environment="HTTP_PROXY=http://$PROXY_EP:3128/" "HTTPS_PROXY=http://$PROXY_EP:3128/" "NO_PROXY=docker-pek.cnqr-cn.com,$HOSTNAME,localhost,.default.svc.cluster.local,.svc.cluster.local,.cluster.local,.us-east-2.compute.internal,$API_LB_EP,127.0.0.1,169.254.169.254,192.168.0.0/16,10.96.0.0/12,$VPC_CIDR"
 Environment="KUBELET_NODE_ROLE=--node-labels=node-role.kubernetes.io/master="
 Environment="KUBELET_INFRA_IMAGE=--pod-infra-container-image=${IMAGE_REPO}/pause-amd64:3.0"
 Environment="KUBELET_CGROUPS=--cgroup-driver=systemd --runtime-cgroups=/systemd/system.slice --kubelet-cgroups=/systemd/system.slice"
@@ -221,11 +203,7 @@ imageRepository: $IMAGE_REPO
 nodeName: "${HOSTNAME}"
 EOF
 
-# initialize
-HTTP_PROXY="http://$PROXY_EP:3128" \
-    HTTPS_PROXY="http://$PROXY_EP:3128" \
-    NO_PROXY="docker-pek.cnqr-cn.com,$HOSTNAME,localhost,$MASTER_IPS,10.96.0.1,127.0.0.1,169.254.169.254" \
-    sudo -E bash -c 'kubeadm init --config=/tmp/kubeadm-config.yaml'
+sudo -E bash -c 'kubeadm init --config=/tmp/kubeadm-config.yaml'
 
 # tar up the K8s TLS assets to distribute to other masters
 sudo tar cvf /tmp/k8s_tls.tar.gz /etc/kubernetes/pki
@@ -238,6 +216,7 @@ sudo chown -R centos:centos /home/centos/.kube
 # deploy networking
 sudo kubectl --kubeconfig /etc/kubernetes/admin.conf apply -f /etc/k8s_bootstrap/calico-rbac-kdd.yaml
 sudo kubectl --kubeconfig /etc/kubernetes/admin.conf apply -f /etc/k8s_bootstrap/calico.yaml
+sudo kubectl --kubeconfig /etc/kubernetes/admin.conf apply -f /etc/k8s_bootstrap/istio.yaml
 
 # get a join command ready for distribution to workers
 sudo kubeadm token create --description "Token created and used by kube-cluster bootstrapper" --print-join-command > /tmp/join
@@ -255,8 +234,7 @@ while [ $INSTALL_COMPLETE -eq 0 ]; do
             /tmp/image_repo \
             /tmp/join \
             /tmp/k8s_tls.tar.gz \
-            /tmp/kubeadm-config.yaml \
-            /tmp/proxy_ep
+            /tmp/kubeadm-config.yaml
         INSTALL_COMPLETE=1
     else
         echo "cluster installation not yet complete"
