@@ -1,6 +1,6 @@
 {
     "variables": {
-        "source_ami_id": "ami-e1496384",
+        "source_ami_id": "ami-9c0638f9",
         "aws_region": "us-east-2"
     },
     "builders": [
@@ -31,6 +31,11 @@
             "type": "file",
             "source": "calico.yaml",
             "destination": "/tmp/calico.yaml"
+        },
+        {
+            "type": "file",
+            "source": "istio.yaml",
+            "destination": "/tmp/istio.yaml"
         },
         {
             "type": "file",

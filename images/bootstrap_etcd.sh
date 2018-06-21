@@ -9,7 +9,7 @@ while [ "$HOSTNAME_PRE" != "ip-10" ]; do
 done
 
 # shut up broken DNS warnings
-ipaddr=`ifconfig eth0 | awk 'match($0,/inet addr:([^ ]+)/,m) {print m[1]}'`
+ipaddr=`ifconfig ens3 | awk 'match($0,/inet addr:([^ ]+)/,m) {print m[1]}'`
 host=`hostname`
 
 if ! grep -q $host /etc/hosts; then
@@ -24,7 +24,7 @@ PRIVATE_IP=""
 while [ "$PRIVATE_IP" == "" ]; do
     echo "private IP not yet available"
     sleep 10
-    PRIVATE_IP=$(ip addr show eth0 | grep -Po 'inet \K[\d.]+')
+    PRIVATE_IP=$(ip addr show ens3 | grep -Po 'inet \K[\d.]+')
 done
 
 PEER_NAME=$(hostname)
