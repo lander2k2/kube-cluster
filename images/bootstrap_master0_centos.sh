@@ -195,6 +195,8 @@ apiServerCertSANs:
 apiServerExtraArgs:
   endpoint-reconciler-type: "lease"
   external-hostname: "${HOSTNAME}"
+  admission-control: "Initializers,NamespaceLifecycle,LimitRanger,ServiceAccount,PersistentVolumeLabel,DefaultStorageClass,DefaultTolerationSeconds,NodeRestriction,ResourceQuota,MutatingAdmissionWebhook,ValidatingAdmissionWebhook"
+  runtime-config: "admissionregistration.k8s.io/v1alpha1"
 controllerManagerExtraArgs:
   configure-cloud-routes: "false"
 kubernetesVersion: "1.9.7"
