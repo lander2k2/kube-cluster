@@ -4,13 +4,19 @@ cluster_name = ""
 // Add the key pair name from AWS here
 key_name = ""
 
+// The AWS region you would like to use
+region = "us-east-2"
+
+// Availability zones
+// All control plane - masters and etcd - deployed to primary
+// Workers deployed across both primary and secondary
+primary_az = "us-east-2a"
+secondary_az = "us-east-2b"
+
 // ID for target VPC
 vpc_id = ""
 
 // ID for target subnets
-// All control plane - masters and etcd - deployed to primary
-// Workers deployed across both primary and secondary
-// For cross-az worker availabilty, specify subnets in different AZs
 primary_subnet = ""
 secondary_subnet = ""
 

@@ -11,6 +11,14 @@ variable "region" {
   default = "us-east-2"
 }
 
+variable "primary_az" {
+  default = "us-east-2a"
+}
+
+variable "secondary_az" {
+  default = "us-east-2b"
+}
+
 resource "aws_vpc" "vpc" {
   cidr_block           = "10.0.0.0/16"
   enable_dns_hostnames = true
@@ -23,7 +31,7 @@ resource "aws_vpc" "vpc" {
 resource "aws_subnet" "primary_subnet" {
   vpc_id            = "${aws_vpc.vpc.id}"
   cidr_block        = "10.0.0.0/18"
-  availability_zone = "us-east-2a"
+  availability_zone = "${var.primary_az}"
 
   tags {
     Name = "${var.cluster_name}-primary"
@@ -33,7 +41,7 @@ resource "aws_subnet" "primary_subnet" {
 resource "aws_subnet" "secondary_subnet" {
   vpc_id            = "${aws_vpc.vpc.id}"
   cidr_block        = "10.0.64.0/18"
-  availability_zone = "us-east-2b"
+  availability_zone = "${var.secondary_az}"
 
   tags {
     Name = "${var.cluster_name}-secondary"
@@ -70,3 +78,16 @@ resource "aws_route_table" "public" {
     Name = "${var.cluster_name}-route_table"
   }
 }
+
+output "vpc_id" {
+  value = "${aws_vpc.vpc.id}"
+}
+
+output "primary_subnet" {
+  value = "${aws_subnet.primary_subnet.id}"
+}
+
+output "secondary_subnet" {
+  value = "${aws_subnet.secondary_subnet.id}"
+}
+

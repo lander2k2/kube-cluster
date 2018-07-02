@@ -51,25 +51,46 @@ There are five distinct roles:
     $ cp terraform.tfvars.example terraform.tfvars
 ```
 
-4. Open `terraform.tfvars` and add or edit the various values.  Don't worry about the AMI values just yet.  We will add those after the images are built.
+4. Open `terraform.tfvars` and add values for:
+* `cluster_name`
+* `key_name`
+* `region`
+* `primary_az`
+* `secondary_az`
 
-5. Build your 5 machine images.  Note the AMI IDs as you build them and add to `terraform.tfvars`.
+5. Deploy network for the cluster.
 ```
+    $ cd network
+    $ ln -s ../terraform.tfvars terraform.tfvars
+    $ terraform init
+    $ terraform plan  # to check what will be done
+    $ terraform apply
+    $ cd ../
+```
+
+6. Use the terraform output to add values in `terraform.tfvars` for:
+* `vpc_id`
+* `primary_subnet`
+* `secondary_subnet`
+
+6. Build your 5 machine images.  Note the AMI IDs as you build them and add to `terraform.tfvars`.  Lookup up the CentOS 7 AMI for your region here: https://wiki.centos.org/Cloud/AWS
+```
+	$ export SOURCE_AMI_ID=ami-123abc
     $ cd images
     $ packer build etcd0_template.json
     $ packer build etcd_template.json
     $ packer build master0_template.json
     $ packer build master_template.json
     $ packer build worker_template.json
+    $ cd ../
 ```
 
-6. Deploy the control plane.  This will stand up an etcd cluster and 3 master nodes.
+7. Deploy the control plane.  This will stand up an etcd cluster and 3 master nodes.
 ```
-    $ cd ../
     $ ./kube-cluster.sh centos [/path/to/private/key] [proxy_endpoint] [image_repo] [api_dns]
 ```
 
-7. Check the control plane is ready.  A kubeconfig file will have been pulled down so you can use `kubectl` to check the cluster.  You should get ouput similar to below.
+8. Check the control plane is ready.  A kubeconfig file will have been pulled down so you can use `kubectl` to check the cluster.  You should get ouput similar to below.
 ```
     $ export KUBECONFIG=$(pwd)/kubeconfig
     $ kubectl get nodes
@@ -79,19 +100,25 @@ There are five distinct roles:
     ip-172-31-7-202    Ready     master    20m       v1.9.7
 ```
 
-8. Deploy the worker auto scaling group.
+9. Deploy the worker auto scaling group.
 ```
     $ cd workers
+    $ ln -s ../terraform.tfvars terraform.tfvars
     $ terraform init
     $ terraform plan  # to check what will be done
     $ terraform apply
+    $ cd ../
 ```
 
-9. Tear down the cluster when you're finished with it.
+10. Tear down the cluster when you're finished with it.
 ```
-    $ terraform destroy  # from workers directory
+    $ cd workers
+    $ terraform destroy
     $ cd ../
     $ terraform destroy infra
+    $ cd network
+    $ terraform destroy
+    $ cd ../
 ```
 
 ## Extend
