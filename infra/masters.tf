@@ -8,7 +8,7 @@ variable "master_disk_size" {
 }
 
 resource "aws_iam_role" "master_role" {
-    name = "master_role"
+    name = "${var.cluster_name}_master_role"
 
     assume_role_policy = <<EOF
 {
@@ -28,7 +28,7 @@ EOF
 }
 
 resource "aws_iam_role_policy" "master_policy" {
-    name = "master_policy"
+    name = "${var.cluster_name}_master_policy"
     role = "${aws_iam_role.master_role.id}"
 
     policy = <<EOF
@@ -83,7 +83,7 @@ EOF
 }
 
 resource "aws_iam_instance_profile" "master_profile" {
-  name = "k8s_master_profile"
+  name = "${var.cluster_name}_k8s_master_profile"
   role = "${aws_iam_role.master_role.name}"
 }
 
@@ -150,7 +150,7 @@ resource "aws_security_group" "master_sg" {
 }
 
 resource "aws_security_group" "master_lb_sg" {
-  name   = "master_lb_sg"
+  name   = "${var.cluster_name}_master_lb_sg"
   vpc_id = "${var.vpc_id}"
 
   ingress {

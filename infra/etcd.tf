@@ -8,7 +8,7 @@ variable "etcd_disk_size" {
 }
 
 resource "aws_security_group" "etcd_sg" {
-  name   = "etcd_sg"
+  name   = "${var.cluster_name}_etcd_sg"
   vpc_id = "${var.vpc_id}"
 
   ingress {
