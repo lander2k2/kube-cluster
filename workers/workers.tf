@@ -1,12 +1,13 @@
 variable "cluster_name" {
   default = "kubernetes"
 }
+
 variable "key_name" {}
 
 variable "vpc_id" {}
 
 data "aws_vpc" "existing" {
-    id = "${var.vpc_id}"
+  id = "${var.vpc_id}"
 }
 
 variable "primary_subnet" {}
@@ -14,21 +15,23 @@ variable "secondary_subnet" {}
 
 variable "worker_count" {}
 variable "worker_ami" {}
+
 variable "worker_type" {
   default = "m4.4xlarge"
 }
+
 variable "worker_disk_size" {
   default = 100
 }
 
 provider "aws" {
-    version = "1.14.1"
+  version = "1.14.1"
 }
 
 resource "aws_iam_role" "worker_role" {
-    name = "worker_role"
+  name = "${var.cluster_name}_worker_role"
 
-    assume_role_policy = <<EOF
+  assume_role_policy = <<EOF
 {
     "Version": "2012-10-17",
     "Statement": [
@@ -46,10 +49,10 @@ EOF
 }
 
 resource "aws_iam_role_policy" "worker_policy" {
-    name = "worker_policy"
-    role = "${aws_iam_role.worker_role.id}"
+  name = "${var.cluster_name}_worker_policy"
+  role = "${aws_iam_role.worker_role.id}"
 
-    policy = <<EOF
+  policy = <<EOF
 {
   "Version": "2012-10-17",
   "Statement": [
@@ -101,12 +104,12 @@ EOF
 }
 
 resource "aws_iam_instance_profile" "worker_profile" {
-  name = "k8s_worker_profile"
+  name = "${var.cluster_name}_k8s_worker_profile"
   role = "${aws_iam_role.worker_role.name}"
 }
 
 resource "aws_security_group" "worker_sg" {
-  name   = "worker_sg"
+  name   = "${var.cluster_name}_worker_sg"
   vpc_id = "${var.vpc_id}"
 
   ingress {
@@ -115,31 +118,37 @@ resource "aws_security_group" "worker_sg" {
     protocol    = "TCP"
     cidr_blocks = ["${data.aws_vpc.existing.cidr_block}"]
   }
+
   ingress {
     from_port   = 10255
     to_port     = 10255
     protocol    = "TCP"
     cidr_blocks = ["${data.aws_vpc.existing.cidr_block}"]
   }
+
   ingress {
     from_port   = 30000
     to_port     = 32767
     protocol    = "TCP"
     cidr_blocks = ["${data.aws_vpc.existing.cidr_block}"]
   }
+
   ingress {
-    from_port   = 22
-    to_port     = 22
-    protocol    = "TCP"
+    from_port = 22
+    to_port   = 22
+    protocol  = "TCP"
+
     #cidr_blocks = ["${data.aws_vpc.existing.cidr_block}"]
     cidr_blocks = ["0.0.0.0/0"]
   }
+
   ingress {
     from_port   = 179
     to_port     = 179
     protocol    = "TCP"
     cidr_blocks = ["${data.aws_vpc.existing.cidr_block}"]
   }
+
   ingress {
     from_port   = 0
     to_port     = 0
@@ -166,14 +175,15 @@ data "local_file" "user_data" {
 }
 
 resource "aws_launch_configuration" "worker" {
-  name_prefix          = "heptio-worker"
-  image_id             = "${var.worker_ami}"
-  instance_type        = "${var.worker_type}"
-  key_name             = "${var.key_name}"
-  security_groups      = ["${aws_security_group.worker_sg.id}"]
-  user_data            = "${data.local_file.user_data.content}"
+  name_prefix     = "heptio-worker"
+  image_id        = "${var.worker_ami}"
+  instance_type   = "${var.worker_type}"
+  key_name        = "${var.key_name}"
+  security_groups = ["${aws_security_group.worker_sg.id}"]
+  user_data       = "${data.local_file.user_data.content}"
+
   #ebs_optimized        = "true"
-  iam_instance_profile = "${aws_iam_instance_profile.worker_profile.name}"
+  iam_instance_profile        = "${aws_iam_instance_profile.worker_profile.name}"
   associate_public_ip_address = "true"
 
   root_block_device {
@@ -188,7 +198,7 @@ resource "aws_launch_configuration" "worker" {
 }
 
 resource "aws_autoscaling_group" "workers" {
-  name                 = "heptio-worker"
+  name                 = "${var.cluster_name}_heptio-worker"
   vpc_zone_identifier  = ["${var.primary_subnet}", "${var.secondary_subnet}"]
   desired_capacity     = "${var.worker_count}"
   max_size             = "${var.worker_count + 1}"
@@ -215,7 +225,6 @@ resource "aws_autoscaling_group" "workers" {
       key                 = "cluster"
       value               = "${var.cluster_name}"
       propagate_at_launch = true
-    }
+    },
   ]
 }
-
