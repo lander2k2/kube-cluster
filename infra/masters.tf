@@ -88,7 +88,7 @@ resource "aws_iam_instance_profile" "master_profile" {
 }
 
 resource "aws_security_group" "master_sg" {
-  name   = "master_sg"
+  name   = "${var.cluster_name}_master_sg"
   vpc_id = "${var.vpc_id}"
 
   ingress {
