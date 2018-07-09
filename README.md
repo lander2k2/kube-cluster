@@ -87,7 +87,7 @@ There are five distinct roles:
 
 7. Deploy the control plane.  This will stand up an etcd cluster and 3 master nodes.  If you don't have an image repo with K8s contol plane images loaded, you can use `quay.io/lander2k2`.  The `api_dns` argument should contain the DNS name you're using for the cluster's API.  If you don't have DNS set up, e.g. Route53, this value is inconsequential.
 ```
-    $ ./kube-cluster.sh centos [/path/to/private/key] [image_repo] [api_dns]
+    $ ./kube-cluster.sh [/path/to/private/key] [image_repo] [api_dns]
 ```
 
 8. Check the control plane is ready.  A kubeconfig file will have been pulled down so you can use `kubectl` to check the cluster.  You should get ouput similar to below.
