@@ -65,6 +65,25 @@ resource "aws_iam_role_policy" "master_policy" {
       "Effect": "Allow"
     },
     {
+      "Effect": "Allow",
+      "Action": [
+        "ec2:CreateNetworkInterface",
+        "ec2:AttachNetworkInterface",
+        "ec2:DeleteNetworkInterface",
+        "ec2:DetachNetworkInterface",
+        "ec2:DescribeNetworkInterfaces",
+        "ec2:DescribeInstances",
+        "ec2:ModifyNetworkInterfaceAttribute",
+        "ec2:AssignPrivateIpAddresses"
+     ],
+     "Resource": "*"
+    },
+    {
+      "Effect": "Allow",
+      "Action": "tag:TagResources",
+      "Resource": "*"
+    },
+    {
       "Action" : [
         "ec2:CreateSecurityGroup",
         "ec2:DescribeSecurityGroups",
@@ -131,7 +150,7 @@ resource "aws_security_group" "master_sg" {
   ingress {
     from_port   = 0
     to_port     = 0
-    protocol    = "4"
+    protocol    = "TCP"
     cidr_blocks = ["${data.aws_vpc.existing.cidr_block}"]
   }
 

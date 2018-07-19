@@ -24,8 +24,8 @@
         },
         {
             "type": "file",
-            "source": "calico-rbac-kdd.yaml",
-            "destination": "/tmp/calico-rbac-kdd.yaml"
+            "source": "aws-k8s-cni.yaml",
+            "destination": "/tmp/aws-k8s-cni.yaml"
         },
         {
             "type": "file",
