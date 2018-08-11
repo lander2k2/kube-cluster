@@ -1,5 +1,4 @@
 variable "master0_ami" {}
-variable "master_ami" {}
 variable "master_type" {}
 
 resource "aws_security_group" "master_sg" {
@@ -92,24 +91,10 @@ resource "aws_instance" "master0_node" {
   }
 }
 
-resource "aws_instance" "master_node" {
-  count                       = 2
-  ami                         = "${var.master_ami}"
-  instance_type               = "${var.master_type}"
-  subnet_id                   = "${aws_subnet.k8s_cluster0.id}"
-  vpc_security_group_ids      = ["${aws_security_group.master_sg.id}"]
-  key_name                    = "${var.key_name}"
-  associate_public_ip_address = "true"
-  depends_on                  = ["aws_internet_gateway.k8s_cluster"]
-  tags {
-    Name = "master"
-  }
-}
-
 resource "aws_elb" "api_elb_external" {
   subnets                   = ["${aws_subnet.k8s_cluster0.id}"]
   internal                  = "false"
-  instances                 = ["${aws_instance.master0_node.id}", "${aws_instance.master_node.*.id}"]
+  instances                 = ["${aws_instance.master0_node.id}"]
   security_groups           = ["${aws_security_group.master_lb_sg.id}"]
   cross_zone_load_balancing = "true"
 
@@ -131,10 +116,6 @@ output "master0_ep" {
 
 output "master0_ip" {
   value = "${aws_instance.master0_node.private_ip}"
-}
-
-output "master_ep" {
-  value = "${aws_instance.master_node.*.public_dns}"
 }
 
 output "api_lb_ep" {

@@ -150,6 +150,7 @@ sudo systemctl start etcd
 ################################################################################
 # cluster-api
 ################################################################################
+kubeadm alpha phase certs front-proxy-ca
 
 mkdir -p /etc/kubernetes/pki/cluster-api
 cat << EOF > /etc/kubernetes/pki/cluster-api/cluster-api.json
@@ -177,7 +178,7 @@ EOF
 
 cd /etc/kubernetes/pki/cluster-api
 cfssl genkey cluster-api.json | cfssljson -bare cluster-api
-cfssl sign -ca ../front-proxy-ca.crt -ca-key ../front-proxy-ca.key -csr cluster-api.csr | cfssljson -bare cluster-api
+cfssl sign -ca /etc/kubernetes/pki/front-proxy-ca.crt -ca-key /etc/kubernetes/pki/front-proxy-ca.key -csr cluster-api.csr | cfssljson -bare cluster-api
 cd -
 
 ################################################################################
@@ -218,6 +219,7 @@ apiServerExtraArgs:
   "requestheader-group-headers": "X-Remote-Group"
   "requestheader-username-headers": "X-Remote-User"
   "enable-aggregator-routing": "true"
+kubernetesVersion: "1.9.7"
 EOF
 
 sudo kubeadm init --config=/tmp/kubeadm-config.yaml
@@ -230,6 +232,10 @@ sudo chown -R ubuntu:ubuntu /home/ubuntu/.kube
 
 sudo kubectl --kubeconfig /etc/kubernetes/admin.conf apply -f /etc/k8s_bootstrap/calico-rbac-kdd.yaml
 sudo kubectl --kubeconfig /etc/kubernetes/admin.conf apply -f /etc/k8s_bootstrap/calico.yaml
+
+kubectl --kubeconfig /etc/kubernetes/admin.conf taint nodes --all node-role.kubernetes.io/master-
+kubectl --kubeconfig /etc/kubernetes/admin.conf create namespace cluster-api
+kubectl --kubeconfig /etc/kubernetes/admin.conf -n cluster-api create secret generic cluster-api-pki --from-file=cert=/etc/kubernetes/pki/cluster-api/cluster-api.pem --from-file=key=/etc/kubernetes/pki/cluster-api/cluster-api-key.pem
 
 sudo kubeadm token create --description "Token created and used by kube-cluster bootstrapper" --print-join-command > /tmp/join
 sudo chown ubuntu:ubuntu /tmp/join
