@@ -233,7 +233,6 @@ sudo chown -R ubuntu:ubuntu /home/ubuntu/.kube
 sudo kubectl --kubeconfig /etc/kubernetes/admin.conf apply -f /etc/k8s_bootstrap/calico-rbac-kdd.yaml
 sudo kubectl --kubeconfig /etc/kubernetes/admin.conf apply -f /etc/k8s_bootstrap/calico.yaml
 
-kubectl --kubeconfig /etc/kubernetes/admin.conf taint nodes --all node-role.kubernetes.io/master-
 kubectl --kubeconfig /etc/kubernetes/admin.conf create namespace cluster-api
 kubectl --kubeconfig /etc/kubernetes/admin.conf -n cluster-api create secret generic cluster-api-pki --from-file=cert=/etc/kubernetes/pki/cluster-api/cluster-api.pem --from-file=key=/etc/kubernetes/pki/cluster-api/cluster-api-key.pem
 
