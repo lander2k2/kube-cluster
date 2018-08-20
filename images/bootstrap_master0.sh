@@ -209,17 +209,7 @@ networking:
   podSubnet: 192.168.0.0/16
 apiServerCertSANs:
 - ${API_LB_EP}
-apiServerExtraArgs:
-  "endpoint-reconciler-type": "lease"
-  "requestheader-client-ca-file": "/etc/kubernetes/pki/front-proxy-ca.crt"
-  "proxy-client-cert-file": "/etc/kubernetes/pki/cluster-api/cluster-api.pem"
-  "proxy-client-key-file": "/etc/kubernetes/pki/cluster-api/cluster-api-key.pem"
-  "requestheader-allowed-names": "cluster-api.cluster-api.svc"
-  "requestheader-extra-headers-prefix": "X-Remote-Extra-"
-  "requestheader-group-headers": "X-Remote-Group"
-  "requestheader-username-headers": "X-Remote-User"
-  "enable-aggregator-routing": "true"
-kubernetesVersion: "1.9.7"
+kubernetesVersion: "1.11.2"
 EOF
 
 sudo kubeadm init --config=/tmp/kubeadm-config.yaml
@@ -232,9 +222,6 @@ sudo chown -R ubuntu:ubuntu /home/ubuntu/.kube
 
 sudo kubectl --kubeconfig /etc/kubernetes/admin.conf apply -f /etc/k8s_bootstrap/calico-rbac-kdd.yaml
 sudo kubectl --kubeconfig /etc/kubernetes/admin.conf apply -f /etc/k8s_bootstrap/calico.yaml
-
-kubectl --kubeconfig /etc/kubernetes/admin.conf create namespace cluster-api
-kubectl --kubeconfig /etc/kubernetes/admin.conf -n cluster-api create secret generic cluster-api-pki --from-file=cert=/etc/kubernetes/pki/cluster-api/cluster-api.pem --from-file=key=/etc/kubernetes/pki/cluster-api/cluster-api-key.pem
 
 sudo kubeadm token create --description "Token created and used by kube-cluster bootstrapper" --print-join-command > /tmp/join
 sudo chown ubuntu:ubuntu /tmp/join
