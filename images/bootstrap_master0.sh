@@ -148,40 +148,6 @@ sudo systemctl enable etcd
 sudo systemctl start etcd
 
 ################################################################################
-# cluster-api
-################################################################################
-kubeadm alpha phase certs front-proxy-ca
-
-mkdir -p /etc/kubernetes/pki/cluster-api
-cat << EOF > /etc/kubernetes/pki/cluster-api/cluster-api.json
-{
-    "hosts": [
-        "cluster-api.svc.cluster.local",
-        "cluster-api.svc"
-    ],
-    "cn": "cluster-api.cluster-api.svc",
-    "key": {
-        "algo": "rsa",
-        "size": 2048
-    },
-    "names": [
-        {
-            "C":  "US",
-            "L":  "Seattle",
-            "O":  "Heptio, Inc.",
-            "OU": "Dev",
-            "ST": "Washington"
-        }
-    ]
-}
-EOF
-
-cd /etc/kubernetes/pki/cluster-api
-cfssl genkey cluster-api.json | cfssljson -bare cluster-api
-cfssl sign -ca /etc/kubernetes/pki/front-proxy-ca.crt -ca-key /etc/kubernetes/pki/front-proxy-ca.key -csr cluster-api.csr | cfssljson -bare cluster-api
-cd -
-
-################################################################################
 # kubernetes
 ################################################################################
 
