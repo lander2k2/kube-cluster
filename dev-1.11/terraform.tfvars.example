@@ -1,0 +1,17 @@
+// Arbitrary cluster name
+cluster_name = "dev-cluster"
+
+// Add the key pair name from AWS here
+key_name = "dev-key"
+
+// Add the AMI IDs you build with packer here
+master0_ami = "ami-xxxxxx"
+worker_ami = "ami-xxxxxx"
+
+// EC2 instance types
+master_type = "t2.medium"
+worker_type = "t2.medium"
+
+// Number of workers to deploy
+worker_count = 2
+

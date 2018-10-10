@@ -1,6 +1,108 @@
 variable "master0_ami" {}
 variable "master_type" {}
 
+resource "aws_iam_role" "master_role" {
+    name = "${var.cluster_name}_master_role"
+
+    assume_role_policy = <<EOF
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Action": "sts:AssumeRole",
+            "Principal": {
+                "Service": "ec2.amazonaws.com"
+            },
+            "Effect": "Allow",
+            "Sid": ""
+        }
+    ]
+}
+EOF
+}
+
+resource "aws_iam_role_policy" "master_policy" {
+    name = "${var.cluster_name}_master_policy"
+    role = "${aws_iam_role.master_role.id}"
+
+    policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": [
+        "ec2:AttachVolume",
+        "ec2:CreateTags",
+        "ec2:CreateVolume",
+        "ec2:DeleteVolume",
+        "ec2:Describe*",
+        "ec2:DescribeInstances",
+        "ec2:DetachVolume",
+        "ec2:CreateRoute",
+        "elasticloadbalancing:*"
+        ],
+      "Resource": "*",
+      "Effect": "Allow"
+    },
+    {
+      "Action" : [
+        "s3:GetObject",
+        "s3:PutObject"
+      ],
+      "Resource": "arn:aws:s3:::*",
+      "Effect": "Allow"
+    },
+    {
+      "Action" : [
+        "autoscaling:DescribeAutoScalingGroups",
+        "autoscaling:DescribeAutoScalingInstances"
+      ],
+      "Resource": "*",
+      "Effect": "Allow"
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "ec2:CreateNetworkInterface",
+        "ec2:AttachNetworkInterface",
+        "ec2:DeleteNetworkInterface",
+        "ec2:DetachNetworkInterface",
+        "ec2:DescribeNetworkInterfaces",
+        "ec2:DescribeInstances",
+        "ec2:ModifyNetworkInterfaceAttribute",
+        "ec2:ModifyInstanceAttribute",
+        "ec2:AssignPrivateIpAddresses"
+     ],
+     "Resource": "*"
+    },
+    {
+      "Effect": "Allow",
+      "Action": "tag:TagResources",
+      "Resource": "*"
+    },
+    {
+      "Action" : [
+        "ec2:CreateSecurityGroup",
+        "ec2:DescribeSecurityGroups",
+        "ec2:AuthorizeSecurityGroupIngress",
+        "ec2:AuthorizeSecurityGroupEgress",
+        "ec2:DeleteSecurityGroup",
+        "ec2:RevokeSecurityGroupEgress",
+        "ec2:RevokeSecurityGroupIngress"
+      ],
+      "Resource": "*",
+      "Effect": "Allow"
+    }
+  ]
+}
+EOF
+}
+
+resource "aws_iam_instance_profile" "master_profile" {
+  name = "${var.cluster_name}_k8s_master_profile"
+  role = "${aws_iam_role.master_role.name}"
+}
+
 resource "aws_security_group" "master_sg" {
   name   = "master_sg"
   vpc_id = "${aws_vpc.k8s_cluster.id}"
@@ -56,6 +158,12 @@ resource "aws_security_group" "master_sg" {
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
+
+  tags = "${map(
+    "Name",                                      "${var.cluster_name}-master",
+    "KubernetesCluster",                         "${var.cluster_name}",
+    "kubernetes.io/cluster/${var.cluster_name}", "owned"
+  )}"
 }
 
 resource "aws_security_group" "master_lb_sg" {
@@ -86,9 +194,14 @@ resource "aws_instance" "master0_node" {
   key_name                    = "${var.key_name}"
   associate_public_ip_address = "true"
   depends_on                  = ["aws_internet_gateway.k8s_cluster"]
-  tags {
-    Name = "master0"
-  }
+  iam_instance_profile        = "${aws_iam_instance_profile.master_profile.name}"
+  source_dest_check           = "false"
+
+  tags = "${map(
+    "Name",                                      "${var.cluster_name}-master",
+    "KubernetesCluster",                         "${var.cluster_name}",
+    "kubernetes.io/cluster/${var.cluster_name}", "owned"
+  )}"
 }
 
 resource "aws_elb" "api_elb_external" {
@@ -105,9 +218,11 @@ resource "aws_elb" "api_elb_external" {
     lb_protocol       = "TCP"
   }
 
-  tags {
-    Name = "kubernetes API external"
-  }
+  tags = "${map(
+    "Name",                                      "${var.cluster_name}-master",
+    "KubernetesCluster",                         "${var.cluster_name}",
+    "kubernetes.io/cluster/${var.cluster_name}", "owned"
+  )}"
 }
 
 output "master0_ep" {

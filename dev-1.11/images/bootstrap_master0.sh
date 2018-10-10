@@ -3,6 +3,7 @@
 PRIVATE_IP=$(ip addr show eth0 | grep -Po 'inet \K[\d.]+')
 PEER_NAME=$(hostname)
 API_LB_EP=0
+HOSTNAME=$(curl http://169.254.169.254/latest/meta-data/local-hostname)
 
 #echo "${PEER_NAME}=https://${PRIVATE_IP}:2380" > /tmp/etcd_member
 echo "${PRIVATE_IP}" > /tmp/private_ip
@@ -176,6 +177,11 @@ networking:
 apiServerCertSANs:
 - ${API_LB_EP}
 kubernetesVersion: "1.11.2"
+cloudProvider: "aws"
+nodeName: "${HOSTNAME}"
+NodeRegistration:
+  KubeletExtraArgs:
+    cloud-provider: "aws"
 EOF
 
 sudo kubeadm init --config=/tmp/kubeadm-config.yaml
